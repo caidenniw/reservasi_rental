@@ -152,3 +152,24 @@ Perbaikan audit (hasil cross-check ulang):
 3. **Throttle login** - setelah 5x password salah, login dikunci 60 detik (cukup untuk pemakaian lokal).
 
 Seluruh alur diuji ulang end-to-end setelah perubahan (lihat tabel bagian 5) - semua lulus.
+
+
+---
+
+## 8. Invoice (mengikuti template referensi)
+
+Tampilan cetak invoice disamakan dengan template perusahaan (`D:\maganghub\invoice\New folder`):
+
+- **Header**: logo kiri (`assets/img/logo.png`), judul "INVOICE" + nama PT + website/email kanan.
+- **Kotak info**: "DITAGIH KEPADA" (instansi + PIC) dan No. Faktur / Tanggal / Jatuh Tempo.
+- **Tabel** header kuning `#FFC000`: No | Keterangan | Driver | Tanggal Pemakaian | Rute | Harga/Hari | Total Hari | Total Harga.
+- **Footer total**: Total, Down Payment, Total Yang Harus Di Bayar.
+- **Terbilang** (angka -> huruf, otomatis).
+- **Kotak CATATAN** = info rekening (SMBC / BNI), bisa diubah di Pengaturan.
+- **Tanda tangan** (`assets/img/ttd.png`) + nama penandatangan (`Yuswanto SH`), bisa diubah di Pengaturan.
+
+Lembar internal (`?mode=internal`) menambah kolom Modal/Hari + kotak ringkasan (total modal, margin,
+partner, handle by). Font Aptos Narrow/Segoe UI, cetak A4 portait, warna kuning dipaksa ikut tercetak
+(`print-color-adjust: exact`).
+
+Nomor faktur masih memakai format sistem `INV/YYYY/MM/0001` (bisa diubah lewat setting `prefix_invoice`).
