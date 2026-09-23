@@ -173,3 +173,17 @@ partner, handle by). Font Aptos Narrow/Segoe UI, cetak A4 portait, warna kuning 
 (`print-color-adjust: exact`).
 
 Nomor faktur masih memakai format sistem `INV/YYYY/MM/0001` (bisa diubah lewat setting `prefix_invoice`).
+
+
+---
+
+## 9. Penanganan Kelemahan & Audit QA (23-09-2026)
+
+Semua kelemahan hasil simulasi admin reservasi telah diselesaikan dan terverifikasi:
+
+1. **Sinkronisasi Order vs Invoice**: Muncul peringatan otomatis di form & detail jika data pesanan diedit setelah invoice terbit, mengarahkan admin untuk tombol *Revisi Invoice*.
+2. **Validasi Overpayment**: Pembayaran yang melebihi sisa tagihan otomatis ditolak sistem.
+3. **Penyelarasan Tipe Pelanggan**: Label diseragamkan menjadi `Retail (Perorangan)`, `Perusahaan / Instansi`, dan `Repeat Order`.
+4. **Keamanan Bukti Transfer**: Akses langsung URL ke folder uploads diblokir (`.htaccess` 403 Forbidden). Pengunduhan/preview file dialihkan melalui `pages/bukti.php` yang wajib session login aktif.
+5. **Normalisasi HP Driver**: Input manual nomor HP driver (misal `08xx`) otomatis dikonversi ke format standar `+62xx`.
+6. **Fitur Ubah Password**: Halaman `pages/ubah_password.php` disediakan di menu dropdown kanan atas untuk mengganti password admin secara aman.
