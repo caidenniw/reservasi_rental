@@ -235,6 +235,11 @@ switch ($aksi) {
             }
             $bukti = $up['path'];
         }
+        $sisaSekarang = (int) $invoice['sisa'];
+        if ($nominal > $sisaSekarang) {
+            setFlash('danger', 'Nominal melebihi sisa tagihan (Rp ' . number_format($sisaSekarang, 0, ',', '.') . '). Periksa kembali.');
+            redirect($kembali);
+        }
         $invId = (int) $invoice['id'];
         $oleh = idUser();
         $st = $db->prepare('INSERT INTO payments (invoice_id, tanggal_bayar, tipe, nominal, metode, bank, bukti_path, catatan, created_by)

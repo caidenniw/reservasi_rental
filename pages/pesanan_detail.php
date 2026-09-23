@@ -30,6 +30,13 @@ $judulHalaman = 'Detail Pesanan ' . $order['nomor_order'];
 $menuAktif = 'data';
 include __DIR__ . '/../includes/header.php';
 ?>
+<?php if ($invAktif && (int) $order['grand_total'] !== (int) $invAktif['total']): ?>
+    <div class="alert alert-warning">
+        <b>Perhatian:</b> data pesanan (<?= rupiah($order['grand_total']) ?>) berbeda dari invoice yang sudah
+        terbit (<?= rupiah($invAktif['total']) ?>). Kalau perubahan ini memang harus masuk ke dokumen,
+        klik <b>Revisi Invoice</b> di bawah supaya invoice diperbarui dengan nomor baru.
+    </div>
+<?php endif; ?>
 <div class="card-box">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
         <div>

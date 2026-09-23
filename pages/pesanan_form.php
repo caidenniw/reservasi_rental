@@ -30,6 +30,12 @@ foreach (($order['includes'] ?? []) as $inc) {
     if ($inc['include_id']) $includeTerpilih[(int) $inc['include_id']] = (int) $inc['biaya'];
 }
 $biayaOrder = $order['biaya'] ?? [];
+$adaInvoiceAktif = false;
+if ($order) {
+    foreach ($order['invoices'] as $iv) {
+        if ($iv['status'] !== 'batal') { $adaInvoiceAktif = true; break; }
+    }
+}
 
 $judulHalaman = $order ? 'Ubah Pesanan ' . $order['nomor_order'] : 'Input Pesanan Baru';
 $menuAktif = 'input';
@@ -128,6 +134,13 @@ function renderBlokUnit(array $it): void {
 <?php
 }
 ?>
+<?php if ($adaInvoiceAktif): ?>
+    <div class="alert alert-warning">
+        Pesanan ini sudah punya <b>invoice yang terbit</b>. Mengubah harga atau jumlah hari di sini
+        <b>tidak mengubah invoice yang sudah terbit</b>. Kalau perlu memperbarui dokumen, simpan dulu,
+        lalu buka halaman detail dan klik <b>Revisi Invoice</b>.
+    </div>
+<?php endif; ?>
 <form method="post" action="<?= BASE_URL ?>/pages/pesanan_proses.php" id="formPesanan">
     <?= csrfField() ?>
     <input type="hidden" name="id" value="<?= (int) $id ?>">
