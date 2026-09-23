@@ -70,6 +70,7 @@ foreach ($arrNopol as $i => $nopolRaw) {
             if ($hpDrv === '')   $hpDrv   = normalisasiHp($d['hp']);
         }
     }
+    if ($hpDrv !== '') $hpDrv = normalisasiHp($hpDrv); // rapikan manual ke +62
     if ($nama === '' && $nopol === '' && $unitId === 0) {
         continue; // baris kosong
     }

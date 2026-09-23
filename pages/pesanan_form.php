@@ -151,7 +151,7 @@ function renderBlokUnit(array $it): void {
             <div>
                 <label class="form-label" for="tipe_pelanggan">Tipe Pelanggan <span class="wajib">*</span></label>
                 <select class="form-select" id="tipe_pelanggan" name="tipe_pelanggan">
-                    <?php foreach (['retail' => 'Retail', 'corporate' => 'Corporate', 'RO' => 'Repeat Order'] as $k => $l): ?>
+                    <?php foreach (['retail' => 'Retail (Perorangan)', 'corporate' => 'Perusahaan / Instansi', 'RO' => 'Repeat Order'] as $k => $l): ?>
                         <option value="<?= $k ?>" <?= fval($o, 'tipe_pelanggan', 'retail') === $k ? 'selected' : '' ?>><?= $l ?></option>
                     <?php endforeach; ?>
                 </select>

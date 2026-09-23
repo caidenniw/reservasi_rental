@@ -19,6 +19,8 @@ $masterMenu = [
     ['divider' => true],
     ['label' => 'Import CSV','url' => '/pages/import.php'],
     ['label' => 'Pengaturan','url' => '/pages/master/pengaturan.php'],
+    ['divider' => true],
+    ['label' => 'Ubah Password', 'url' => '/pages/ubah_password.php'],
 ];
 ?>
 <!doctype html>

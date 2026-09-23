@@ -213,7 +213,7 @@ include __DIR__ . '/../includes/header.php';
                                     <td class="num"><?= rupiah($p['nominal'], false) ?></td>
                                     <td>
                                         <?php if ($p['bukti_path']): ?>
-                                            <a href="<?= BASE_URL . '/' . e($p['bukti_path']) ?>" target="_blank" rel="noopener">lihat</a>
+                                            <a href="<?= BASE_URL ?>/pages/bukti.php?id=<?= (int) $p['id'] ?>" target="_blank" rel="noopener">lihat</a>
                                         <?php else: ?>-<?php endif; ?>
                                     </td>
                                     <td>

@@ -157,7 +157,7 @@ function statusBadge(string $s): string
 function labelWilayah(string $w): string { return $w === 'luar_kota' ? 'Luar Kota' : 'Dalam Kota'; }
 function labelTipePelanggan(string $t): string
 {
-    return ['retail' => 'Retail', 'corporate' => 'Corporate', 'RO' => 'Repeat Order'][$t] ?? $t;
+    return ['retail' => 'Retail (Perorangan)', 'corporate' => 'Perusahaan / Instansi', 'RO' => 'Repeat Order'][$t] ?? $t;
 }
 function labelSumber(string $s): string
 {
