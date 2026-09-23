@@ -34,11 +34,8 @@ $masterMenu = [
 <div class="app">
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-mark">1000</div>
-            <div>
-                <div class="brand-name">Nusantara Rental</div>
-                <div class="brand-sub">Dashboard Reservasi</div>
-            </div>
+            <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="1000 Nusantara" class="brand-logo">
+            <div class="brand-sub">Dashboard Reservasi</div>
         </div>
         <nav class="sidebar-nav">
             <?php foreach ($menu as $key => $m): ?>

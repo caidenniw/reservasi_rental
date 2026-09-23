@@ -49,9 +49,10 @@ body {
     overflow-y: auto;
 }
 .sidebar-brand {
-    display: flex; align-items: center; gap: 10px;
     padding: 20px 16px 16px;
 }
+.brand-logo { display: block; width: 148px; height: auto; }
+.brand-logo + .brand-sub { margin-top: 8px; }
 .brand-mark {
     width: 40px; height: 40px; border-radius: 10px;
     background: var(--primary); color: #fff;
@@ -217,6 +218,7 @@ table.tabel .muted { color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
 .login-box { width: 370px; background: #fff; border-radius: 14px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,.25); }
 .login-brand { text-align: center; margin-bottom: 22px; }
 .login-brand .brand-mark { margin: 0 auto 12px; }
+.login-logo { display: block; width: 178px; height: auto; margin: 0 auto 14px; }
 .login-brand h1 { font-size: 16px; margin: 0; font-weight: 700; }
 .login-brand p { font-size: 12.5px; color: var(--ink-soft); margin: 4px 0 0; }
 

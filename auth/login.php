@@ -19,7 +19,7 @@ $flash = getFlash();
 <div class="login-wrap">
     <div class="login-box">
         <div class="login-brand">
-            <div class="brand-mark">1000</div>
+            <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="1000 Nusantara" class="login-logo">
             <h1><?= e(APP_NAME) ?></h1>
             <p><?= e(APP_SUB) ?></p>
         </div>
