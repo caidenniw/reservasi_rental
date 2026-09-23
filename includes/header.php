@@ -48,6 +48,7 @@ $masterMenu = [
             <?php endforeach; ?>
         </nav>
         <div class="sidebar-foot">
+            <div class="sidebar-slogan">"Satu Sistem Seribu Perjalanan"</div>
             <div class="user-name"><?= e(namaUser()) ?></div>
             <form method="post" action="<?= BASE_URL ?>/auth/logout.php">
                 <?= csrfField() ?>
@@ -60,6 +61,11 @@ $masterMenu = [
         <header class="topbar">
             <h1 class="page-title"><?= e($judulHalaman) ?></h1>
             <div class="topbar-right">
+                <span class="topbar-date"><?= e(hariPanjang()) ?></span>
+                <div class="user-chip">
+                    <span class="avatar"><?= e(strtoupper(mb_substr(namaUser(), 0, 1))) ?></span>
+                    <?= e(namaUser()) ?>
+                </div>
                 <div class="dropdown">
                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" type="button">
                         Master Data

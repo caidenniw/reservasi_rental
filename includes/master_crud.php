@@ -26,6 +26,13 @@ function mcrudHandle(array $cfg): array
             $stmt = $db->prepare("UPDATE `$tabel` SET deleted_at = NOW() WHERE id = ?");
             $stmt->bind_param('i', $id);
             $stmt->execute();
+            if ($tabel === 'units') {
+                /* unik nopol: beri suffix agar nopol yang sama bisa dipakai unit baru,
+                   data lama (dan snapshot di order) tidak berubah */
+                $st2 = $db->prepare("UPDATE units SET nopol = CONCAT(nopol, '#del', id) WHERE id = ?");
+                $st2->bind_param('i', $id);
+                $st2->execute();
+            }
             setFlash('success', 'Data dinonaktifkan (data lama tetap tersimpan).');
         } else {
             $stmt = $db->prepare("DELETE FROM `$tabel` WHERE id = ?");

@@ -10,6 +10,7 @@ $db = getDB();
 
 $id   = (int) ($_GET['id'] ?? 0);
 $mode = ($_GET['mode'] ?? '') === 'internal' ? 'internal' : 'customer';
+$embed = (($_GET['embed'] ?? '') === '1');   /* mode pratinjau di dalam iframe: tanpa toolbar, skala kecil */
 
 $st = $db->prepare('SELECT * FROM invoices WHERE id = ?');
 $st->bind_param('i', $id);
@@ -48,11 +49,11 @@ $batal = $inv['status'] === 'batal';
     body { font-family: "Times New Roman", Georgia, serif; font-size: 12pt; line-height: 1.5; background: #f0f0f0; margin: 0; color: #111; }
     .lembar { width: 210mm; min-height: 297mm; margin: 20px auto; padding: 18mm 18mm 14mm 18mm; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,.2); position: relative; }
     .no-print { max-width: 210mm; margin: 16px auto 0; display: flex; gap: 8px; }
-    .no-print button, .no-print a { font-family: "Segoe UI", Arial, sans-serif; font-size: 13px; padding: 8px 14px; border: 1px solid #1E6F50; background: #1E6F50; color: #fff; border-radius: 6px; cursor: pointer; text-decoration: none; }
+    .no-print button, .no-print a { font-family: "Segoe UI", Arial, sans-serif; font-size: 13px; padding: 8px 14px; border: 1px solid #e62e2e; background: #e62e2e; color: #fff; border-radius: 6px; cursor: pointer; text-decoration: none; }
     .no-print a.abu { background: #fff; color: #33475B; border-color: #CBD5E0; }
 
-    .kop { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1E6F50; padding-bottom: 10px; }
-    .kop .brand { font-size: 20pt; font-weight: bold; color: #1E6F50; letter-spacing: .5px; }
+    .kop { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e62e2e; padding-bottom: 10px; }
+    .kop .brand { font-size: 20pt; font-weight: bold; color: #e62e2e; letter-spacing: .5px; }
     .kop .brand small { display: block; font-size: 9.5pt; font-weight: normal; color: #33475B; letter-spacing: 0; }
     .kop .kontak { text-align: right; font-size: 9.5pt; color: #33475B; }
     .judul { text-align: center; margin: 16px 0 6px; font-size: 16pt; font-weight: bold; letter-spacing: 3px; }
@@ -85,6 +86,10 @@ $batal = $inv['status'] === 'batal';
     .ttd .ruang { height: 60px; }
     .watermark { position: absolute; top: 42%; left: 0; right: 0; text-align: center; font-size: 60pt; color: rgba(192,57,43,.16); font-weight: bold; transform: rotate(-18deg); letter-spacing: 8px; }
 
+    body.embed .no-print { display: none !important; }
+    body.embed { background: #fff; }
+    body.embed .lembar { width: 100%; min-height: 0; margin: 0; box-shadow: none; padding: 6mm 7mm; zoom: .52; }
+
     @media print {
         body { background: #fff; }
         .no-print { display: none !important; }
@@ -95,7 +100,7 @@ $batal = $inv['status'] === 'batal';
     }
 </style>
 </head>
-<body>
+<body<?= $embed ? ' class="embed"' : '' ?>>
 
 <div class="no-print">
     <button onclick="window.print()">Cetak / Simpan PDF</button>

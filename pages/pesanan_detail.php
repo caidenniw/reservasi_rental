@@ -159,6 +159,9 @@ include __DIR__ . '/../includes/header.php';
                         <button class="btn btn-sm btn-outline-secondary" type="submit">Revisi Invoice</button>
                     </form>
                 </div>
+                <iframe class="mt-3" title="Pratinjau invoice"
+                        src="<?= BASE_URL ?>/pages/invoice_cetak.php?id=<?= (int) $invAktif['id'] ?>&embed=1"
+                        style="width:100%;height:430px;border:1px solid var(--line);border-radius:8px;background:#fff"></iframe>
 
                 <hr>
                 <div class="form-label">Catat Pembayaran</div>

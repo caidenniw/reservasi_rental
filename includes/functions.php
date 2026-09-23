@@ -82,6 +82,12 @@ function bulanSingkat(int $b): string
 {
     return ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][$b] ?? '';
 }
+function hariPanjang(?int $ts = null): string
+{
+    $ts = $ts ?: time();
+    $h = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    return $h[(int) date('w', $ts)] . ', ' . date('j', $ts) . ' ' . bulanPanjang((int) date('n', $ts)) . ' ' . date('Y', $ts);
+}
 function bulanPanjang(int $b): string
 {
     return ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][$b] ?? '';
@@ -114,14 +120,13 @@ function statusLabel(string $s): string
 function statusBadge(string $s): string
 {
     $m = [
-        'draft' => 'secondary', 'inquiry' => 'secondary', 'quoted' => 'info', 'waiting_dp' => 'warning',
-        'booked' => 'primary', 'in_trip' => 'info', 'completed' => 'success', 'invoiced' => 'primary',
-        'paid' => 'success', 'reported' => 'dark', 'cancelled' => 'danger', 'closed' => 'secondary',
-        'terbit' => 'primary', 'sebagian' => 'warning', 'lunas' => 'success', 'batal' => 'danger',
+        'draft' => 'slate', 'inquiry' => 'slate', 'quoted' => 'blue', 'waiting_dp' => 'amber',
+        'booked' => 'blue', 'in_trip' => 'cyan', 'completed' => 'green', 'invoiced' => 'blue',
+        'paid' => 'green', 'reported' => 'slate', 'cancelled' => 'red', 'closed' => 'slate',
+        'terbit' => 'blue', 'sebagian' => 'amber', 'lunas' => 'green', 'batal' => 'red',
     ];
-    $c = $m[$s] ?? 'secondary';
-    $teks = in_array($c, ['warning', 'info'], true) ? ' text-dark' : '';
-    return '<span class="badge bg-' . $c . $teks . '">' . e(statusLabel($s)) . '</span>';
+    $c = $m[$s] ?? 'slate';
+    return '<span class="badge-pill pill-' . $c . '">' . e(statusLabel($s)) . '</span>';
 }
 function labelWilayah(string $w): string { return $w === 'luar_kota' ? 'Luar Kota' : 'Dalam Kota'; }
 function labelTipePelanggan(string $t): string

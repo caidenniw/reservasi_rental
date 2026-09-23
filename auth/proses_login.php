@@ -6,6 +6,23 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 verifyCsrfToken();
 
+/* pembatas sederhana: 5x gagal -> tunggu 60 detik (cukup untuk pemakaian lokal) */
+function gagalLogin(string $pesan): void
+{
+    $_SESSION['login_fail'] = (int) ($_SESSION['login_fail'] ?? 0) + 1;
+    $_SESSION['login_fail_time'] = time();
+    setFlash('danger', $pesan);
+    redirect(BASE_URL . '/auth/login.php');
+}
+if ((int) ($_SESSION['login_fail'] ?? 0) >= 5) {
+    $tunggu = 60 - (time() - (int) ($_SESSION['login_fail_time'] ?? 0));
+    if ($tunggu > 0) {
+        setFlash('danger', 'Terlalu banyak percobaan gagal. Coba lagi dalam ' . $tunggu . ' detik.');
+        redirect(BASE_URL . '/auth/login.php');
+    }
+    unset($_SESSION['login_fail'], $_SESSION['login_fail_time']);
+}
+
 $username = trim((string) ($_POST['username'] ?? ''));
 $password = (string) ($_POST['password'] ?? '');
 
@@ -21,18 +38,16 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
 if (!$user) {
-    setFlash('danger', 'Username tidak ditemukan.');
-    redirect(BASE_URL . '/auth/login.php');
+    gagalLogin('Username tidak ditemukan.');
 }
 if (!isset($user['is_active']) || (int) $user['is_active'] !== 1) {
-    setFlash('danger', 'Akun Anda dinonaktifkan. Hubungi admin.');
-    redirect(BASE_URL . '/auth/login.php');
+    gagalLogin('Akun Anda dinonaktifkan. Hubungi admin.');
 }
 if (!password_verify($password, $user['password'])) {
-    setFlash('danger', 'Password salah.');
-    redirect(BASE_URL . '/auth/login.php');
+    gagalLogin('Password salah.');
 }
 
+unset($_SESSION['login_fail'], $_SESSION['login_fail_time']);
 session_regenerate_id(true);
 $_SESSION['user_id']  = (int) $user['id'];
 $_SESSION['username'] = $user['username'];
