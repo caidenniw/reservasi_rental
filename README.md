@@ -187,3 +187,18 @@ Semua kelemahan hasil simulasi admin reservasi telah diselesaikan dan terverifik
 4. **Keamanan Bukti Transfer**: Akses langsung URL ke folder uploads diblokir (`.htaccess` 403 Forbidden). Pengunduhan/preview file dialihkan melalui `pages/bukti.php` yang wajib session login aktif.
 5. **Normalisasi HP Driver**: Input manual nomor HP driver (misal `08xx`) otomatis dikonversi ke format standar `+62xx`.
 6. **Fitur Ubah Password**: Halaman `pages/ubah_password.php` disediakan di menu dropdown kanan atas untuk mengganti password admin secara aman.
+
+
+---
+
+## 10. Navigasi Sidebar Modern & Desain SaaS (23-09-2026)
+
+Menu navigasi diperbarui menyeluruh mengadopsi standar UI/UX aplikasi modern (SaaS):
+
+1. **Sidebar Terkelompok (Categorized Navigation)**:
+   - **MENU UTAMA**: Dashboard, Input Pesanan, Data Pesanan & Faktur.
+   - **DATA MASTER**: Armada Mobil, Data Driver, Data Pelanggan, Partner (Support By), Item Include.
+   - **SISTEM & TOOLS**: Import CSV, Pengaturan Faktur, Ubah Password.
+2. **Ikon SVG Vektor Ringan**: Setiap menu memiliki ikon SVG presisi dan tajam tanpa dependensi CDN eksternal.
+3. **Profil Admin & Slogan**: Bagian bawah sidebar menampilkan avatar admin, status "Admin Reservasi", dan tombol keluar langsung.
+4. **Mobile Drawer Offcanvas**: Di ponsel/tablet (`<= 991px`), sidebar bertransformasi menjadi *sliding drawer* dengan efek latar buram (*backdrop blur*) yang dibuka lewat tombol hamburger di topbar.
