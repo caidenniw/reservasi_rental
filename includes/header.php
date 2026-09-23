@@ -77,6 +77,13 @@ $masterMenu = [
                                 <li><a class="dropdown-item" href="<?= BASE_URL . $mm['url'] ?>"><?= e($mm['label']) ?></a></li>
                             <?php endif; ?>
                         <?php endforeach; ?>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="<?= BASE_URL ?>/auth/logout.php" class="px-2 py-1">
+                                <?= csrfField() ?>
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">Keluar</button>
+                            </form>
+                        </li>
                     </ul>
                 </div>
             </div>

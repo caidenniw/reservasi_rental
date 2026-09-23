@@ -204,6 +204,10 @@ switch ($aksi) {
         $st->bind_param('si', $nomorBaru, $lamaId);
         $st->execute();
 
+        $st = $db->prepare('UPDATE orders SET status = "invoiced" WHERE id = ? AND status NOT IN ("paid","reported")');
+        $st->bind_param('i', $id);
+        $st->execute();
+
         perbaruiInvoice($invBaruId, $id);
         catatStatus($id, $order['status'], $order['status'], 'Invoice direvisi: ' . $lama['nomor_invoice'] . ' -> ' . $nomorBaru . ' (pembayaran dipindahkan)');
         setFlash('success', 'Invoice direvisi. ' . $lama['nomor_invoice'] . ' ditandai batal, nomor baru: ' . $nomorBaru . '. Pembayaran yang sudah masuk ikut dipindahkan.');

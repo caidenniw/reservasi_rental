@@ -87,6 +87,56 @@ $totalInv = (int) $inv['total'];
     body.embed { background: #fff; }
     body.embed .invoice-page { width: 100%; min-height: 0; margin: 0; box-shadow: none; padding: 5mm 6mm; zoom: .55; }
 
+    @media screen and (max-width: 768px) {
+        body:not(.embed) { padding: 10px 8px; }
+        body:not(.embed) .invoice-page {
+            width: 100%;
+            min-height: auto;
+            margin: 8px auto;
+            padding: 12px 10px;
+            box-shadow: 0 1px 6px rgba(0,0,0,.1);
+        }
+        body:not(.embed) .no-print {
+            max-width: 100%;
+            margin: 6px auto;
+            gap: 6px;
+        }
+        body:not(.embed) .no-print button, body:not(.embed) .no-print a {
+            flex: 1 1 auto;
+            text-align: center;
+            padding: 7px 10px;
+            font-size: 11.5px;
+        }
+        body:not(.embed) .header {
+            flex-direction: column;
+            gap: 8px;
+        }
+        body:not(.embed) .header-right {
+            text-align: left;
+        }
+        body:not(.embed) .info-section {
+            flex-direction: column;
+        }
+        body:not(.embed) .info-left {
+            flex: none;
+            width: 100%;
+            border-bottom: none;
+        }
+        body:not(.embed) .main-table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        body:not(.embed) .footer {
+            flex-direction: column;
+            gap: 16px;
+        }
+        body:not(.embed) .footer-left {
+            flex: none;
+            width: 100%;
+        }
+    }
+
     /* ===== HEADER ===== */
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
     .header-left { flex: 1; }
