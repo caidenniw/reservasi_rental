@@ -31,7 +31,7 @@ foreach ($cfg['kolom'] as $c) {
 }
 
 $judulHalaman = 'Master Include';
-$menuAktif = '';
+$menuAktif = 'include';
 include __DIR__ . '/../../includes/header.php';
 masterRender($cfg, $errors, $rows, $cari, $editRow, $nilaiForm, 'cari nama include');
 include __DIR__ . '/../../includes/footer.php';

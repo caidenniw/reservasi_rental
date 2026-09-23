@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $judulHalaman = 'Ubah Password';
-$menuAktif = '';
+$menuAktif = 'ubah_password';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="card-box" style="max-width:480px">

@@ -309,7 +309,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $judulHalaman = 'Import CSV';
-$menuAktif = '';
+$menuAktif = 'import';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="card-box">

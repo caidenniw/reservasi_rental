@@ -25,7 +25,7 @@ while ($r = $res->fetch_assoc()) {
 $judulGrup = ['kop' => 'Kop Invoice & Identitas', 'bayar' => 'Pembayaran & DP', 'nomor' => 'Format Nomor Dokumen'];
 
 $judulHalaman = 'Pengaturan';
-$menuAktif = '';
+$menuAktif = 'pengaturan';
 include __DIR__ . '/../../includes/header.php';
 ?>
 <form method="post">

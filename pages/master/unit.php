@@ -41,7 +41,7 @@ foreach ($cfg['kolom'] as $c) {
 }
 
 $judulHalaman = 'Master Unit';
-$menuAktif = '';
+$menuAktif = 'unit';
 include __DIR__ . '/../../includes/header.php';
 masterRender($cfg, $errors, $rows, $cari, $editRow, $nilaiForm, 'cari nama / nopol / kode');
 include __DIR__ . '/../../includes/footer.php';

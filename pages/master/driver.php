@@ -36,7 +36,7 @@ foreach ($cfg['kolom'] as $c) {
 }
 
 $judulHalaman = 'Master Driver';
-$menuAktif = '';
+$menuAktif = 'driver';
 include __DIR__ . '/../../includes/header.php';
 masterRender($cfg, $errors, $rows, $cari, $editRow, $nilaiForm, 'cari nama / HP / wilayah');
 include __DIR__ . '/../../includes/footer.php';

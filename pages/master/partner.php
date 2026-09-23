@@ -34,7 +34,7 @@ foreach ($cfg['kolom'] as $c) {
 }
 
 $judulHalaman = 'Master Partner';
-$menuAktif = '';
+$menuAktif = 'partner';
 include __DIR__ . '/../../includes/header.php';
 masterRender($cfg, $errors, $rows, $cari, $editRow, $nilaiForm, 'cari nama partner / HP');
 include __DIR__ . '/../../includes/footer.php';
