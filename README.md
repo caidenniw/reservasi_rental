@@ -1,0 +1,132 @@
+# Dashboard Reservasi - 1000 Nusantara Rental
+
+Sistem input pesanan, data pesanan, dan cetak invoice untuk rental mobil + driver.
+PHP native (tanpa framework) + MySQL + Bootstrap 5. Dijalankan lokal di Laragon.
+
+---
+
+## 1. Cara menjalankan
+
+1. Nyalakan **Laragon** (Apache + MySQL).
+2. Buka browser: **http://localhost/rentalnusantara/**
+   (kalau sudah me-restart Laragon, bisa juga **http://rentalnusantara.test/**)
+3. Login: **admin** / **admin123**  <- ganti password setelah dipakai.
+
+Database: `rentalnusantara` (MySQL). Kalau perlu pasang ulang dari nol:
+
+```
+mysql -uroot < database/schema.sql         # struktur + master (include & pengaturan)
+mysql -uroot < database/seed_contoh.sql    # contoh unit/driver/partner/customer (boleh dilewati)
+```
+
+Akun admin dibuat lewat PHP (password di-hash, tidak ditulis di SQL):
+
+```
+php -r 'require "config/database.php"; $db=getDB();
+$p=password_hash("admin123", PASSWORD_DEFAULT);
+$s=$db->prepare("INSERT INTO users (username,nama,password) VALUES (?,?,?)");
+$u="admin"; $n="Admin Reservasi"; $s->bind_param("sss",$u,$n,$p); $s->execute();'
+```
+
+---
+
+## 2. Tiga menu
+
+| Menu | Isi |
+|---|---|
+| **Beranda** | kartu angka (pesanan berjalan, pesanan bulan ini, unit keluar, invoice belum lunas), nilai pesanan + margin bulan ini, papan status, grafik 6 bulan (CSS, tanpa library), 6 pesanan terbaru |
+| **Input Pesanan** | form 3 bagian sesuai template WA: Pelayanan, Customer & PIC, Unit/Driver/Harga. Hitung hari & ringkasan biaya otomatis. Ada **Simpan Draft** |
+| **Data Pesanan & Invoice** | tabel + cari (no. order / pesanan / PIC / nopol / kota) + filter status & bulan + export CSV. Klik **Detail**: lihat semua data, ubah, salin teks WA, terbitkan/cetak/revisi invoice, catat pembayaran, riwayat status |
+
+Master data (Unit, Driver, Customer, Partner, Include), **Import CSV**, dan **Pengaturan** ada di menu
+**Master Data** pada kanan atas - sengaja tidak masuk sidebar agar sidebar tetap 3 menu.
+
+---
+
+## 3. Struktur folder
+
+```
+rentalnusantara/
+├── config/database.php      koneksi, BASE_URL otomatis, zona waktu Asia/Jakarta, session
+├── includes/
+│   ├── functions.php        auth, CSRF, format rupiah/tanggal, nomor dokumen, hitung order, teks WA
+│   ├── master_crud.php      CRUD generik halaman master
+│   ├── master_tampilan.php  tampilan standar (form + tabel)
+│   ├── header.php footer.php
+├── auth/                    login, proses_login, logout
+├── pages/
+│   ├── beranda.php          menu 1
+│   ├── pesanan_form.php     menu 2 (tambah/ubah)
+│   ├── pesanan_proses.php   simpan pesanan (validate -> snapshot -> hitung total)
+│   ├── pesanan_list.php     menu 3
+│   ├── pesanan_detail.php   detail + aksi
+│   ├── pesanan_aksi.php     ubah status, terbitkan/revisi invoice, catat pembayaran, batal/hapus
+│   ├── pesanan_wa.php       teks konfirmasi WA (siap salin)
+│   ├── invoice_cetak.php    halaman cetak (versi customer & lembar internal)
+│   ├── import.php           import CSV + template
+│   └── master/              unit, driver, customer, partner, include, pengaturan
+├── api/autocomplete.php     endpoint JSON (dipakai untuk pencarian unit/customer)
+├── database/                schema.sql, seed_contoh.sql
+└── assets/                  css, js, bootstrap lokal, uploads (bukti transfer)
+```
+
+---
+
+## 4. Aturan yang dipegang sistem
+
+- **Satu pesanan = satu record.** Menu Input dan menu Data memakai tabel `orders` yang sama; tidak ada input dua kali.
+- **Jumlah hari** = tanggal selesai - tanggal mulai + 1 (inklusif). 27-30 Sep = 4 hari.
+- **Dua tingkat harga**: `harga_modal` (internal) dan `harga_jual` (customer).
+  Invoice customer **tidak pernah** memuat modal, margin, maupun nama partner.
+  Lembar internal dicetak terpisah (`invoice_cetak.php?mode=internal`).
+- **Snapshot**: nama unit, nopol, driver, harga, dan data customer disalin ke pesanan/invoice saat disimpan.
+  Master data berubah kemudian tidak mengubah dokumen lama.
+- **Nomor dokumen** dibuat dengan transaksi + row lock: order `RN-YYMM-0001`, invoice `INV/YYYY/MM/0001`.
+- **Kunci dokumen**: draft bebas diubah; setelah invoice terbit nomornya terkunci. Salah? pakai **Revisi** -
+  nomor lama ditandai `batal`, nomor baru terbit, dan **pembayaran yang sudah masuk ikut pindah** ke nomor baru.
+- **Validasi bentrok unit**: unit yang sama tidak bisa dipakai pada rentang tanggal yang bertumpuk
+  (status draft/batal/ditutup dikecualikan).
+- **Pembayaran**: menyimpan nominal + bukti transfer opsional; status invoice otomatis
+  `terbit -> sebagian -> lunas`, dan pesanan otomatis jadi `Lunas` saat sisa 0.
+- **Cetak** memakai halaman HTML + CSS `@media print` (Ctrl+P -> Save as PDF). Tidak ada file PDF permanen.
+
+---
+
+## 5. Status verifikasi (23-09-2026)
+
+Semua alur sudah diuji end-to-end lewat HTTP (login, POST, baca database), bukan hanya dibaca kodenya:
+
+| Uji | Hasil |
+|---|---|
+| Login + session + CSRF | berhasil (302 ke beranda, halaman 200) |
+| Input pesanan (kasus OJK / Innova Reborn / Ade, 27-30 Sep) | tersimpan: 4 hari, modal 3.600.000, jual 4.800.000, margin 1.200.000 |
+| Customer dibuat otomatis dari form pesanan | berhasil |
+| Validasi bentrok unit | pesanan kedua untuk unit sama tanggal bertumpuk DITOLAK |
+| Terbit invoice | `INV/2026/09/0001` + rincian item, jatuh tempo 7 hari |
+| DP 1.000.000 | invoice `sebagian`, sisa 3.800.000 |
+| Revisi invoice | nomor lama `batal`, nomor baru `INV/2026/09/0002`, pembayaran pindah |
+| Pelunasan | invoice `lunas`, pesanan jadi `Lunas` |
+| Cetak invoice customer | tidak memuat kata Margin/Modal (dicek langsung di HTML) |
+| Lembar internal | memuat modal, margin, partner |
+| Teks WA | sesuai template lama, tanpa baris modal |
+| Master data (tambah/ubah/nonaktif) | berhasil |
+| Import CSV | 1 masuk, 1 duplikat dilewati, laporan per baris |
+| Export CSV + semua halaman | 200 OK |
+
+Contoh pesanan `RN-2609-0001` (OJK Prov. Sumut) sengaja dibiarkan di database sebagai contoh -
+boleh dihapus dari halaman detail kapan saja.
+
+---
+
+## 6. Catatan penting
+
+- `php.ini` Laragon masih `date.timezone = UTC`; sudah diatasi dengan
+  `date_default_timezone_set('Asia/Jakarta')` di `config/database.php`. Jangan dihapus, kalau tidak
+  invoice yang dicetak malam bisa bertanggal beda sehari.
+- **Type string `bind_param` jangan ditulis manual.** Satu karakter salah (misal `i` untuk kolom teks)
+  membuat ENUM/teks terisi 0 dan error "Data truncated" hanya muncul saat dijalankan, tidak saat `php -l`.
+  Di proyek ini type string dibangun otomatis dari daftar field.
+- Kalau nanti dipakai lebih dari satu orang atau diserahkan ke perusahaan, tambahkan kolom `role`
+  pada tabel `users` + filter di query **sebelum** dibagikan (sekarang semua yang login melihat semua data).
+- Deploy belum dilakukan (sesuai keputusan: cukup laptop). Struktur dibuat portable:
+  `BASE_URL` dihitung otomatis, tidak ada CDN, tidak ada library eksternal.
