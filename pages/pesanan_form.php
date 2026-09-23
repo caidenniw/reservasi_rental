@@ -42,13 +42,13 @@ $menuAktif = 'input';
 include __DIR__ . '/../includes/header.php';
 
 /* satu blok unit (dipakai untuk baris yang sudah ada) */
-function renderBlokUnit(array $it): void {
+function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
     global $units, $drivers, $partners;
 ?>
                 <div class="item-unit">
                     <div class="item-head">
-                        <span class="unit-no">Unit</span>
-                        <button type="button" class="btn btn-sm btn-outline-danger btn-hapus-unit">Hapus unit</button>
+                        <span class="unit-no">Armada / Mobil <?= $i + 1 ?></span>
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-hapus-unit" style="<?= $total > 1 ? '' : 'display:none;' ?>">Hapus unit</button>
                     </div>
                     <div class="form-grid">
                         <div>
@@ -250,11 +250,12 @@ function renderBlokUnit(array $it): void {
         <div class="section-step"><div class="step-no">3</div><div class="step-title">Unit, Driver & Harga</div></div>
 
         <div id="wadahUnit">
-            <?php foreach ($items as $it): ?>
-                <?php renderBlokUnit($it); ?>
+            <?php foreach ($items as $idx => $it): ?>
+                <?php renderBlokUnit($it, $idx, count($items)); ?>
             <?php endforeach; ?>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="btnTambahUnit">+ Tambah unit</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="btnTambahUnit">+ Tambah Mobil Lain (Rombongan)</button>
+        <div class="form-text mt-1">Gunakan jika pesanan menyewa lebih dari satu kendaraan dalam satu tagihan/faktur.</div>
 
         <hr class="my-4">
 
@@ -321,7 +322,7 @@ function renderBlokUnit(array $it): void {
 <template id="tplUnit">
     <div class="item-unit">
         <div class="item-head">
-            <span class="unit-no">Unit</span>
+            <span class="unit-no">Armada / Mobil</span>
             <button type="button" class="btn btn-sm btn-outline-danger btn-hapus-unit">Hapus unit</button>
         </div>
         <div class="form-grid">

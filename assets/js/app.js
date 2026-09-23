@@ -88,8 +88,14 @@ function rnSiapkanFormPesanan() {
         }
     });
     function perbaruiNomorUnit() {
-        wadah.querySelectorAll('.item-unit').forEach(function (k, i) {
-            k.querySelector('.unit-no').textContent = 'Unit ' + (i + 1);
+        var items = wadah.querySelectorAll('.item-unit');
+        items.forEach(function (k, i) {
+            var label = k.querySelector('.unit-no');
+            if (label) label.textContent = 'Armada / Mobil ' + (i + 1);
+            var btnHapus = k.querySelector('.btn-hapus-unit');
+            if (btnHapus) {
+                btnHapus.style.display = (items.length > 1) ? 'inline-block' : 'none';
+            }
         });
     }
 
@@ -130,6 +136,7 @@ function rnSiapkanFormPesanan() {
         }
     });
 
+    perbaruiNomorUnit();
     ringkas();
 }
 
