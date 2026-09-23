@@ -1,0 +1,185 @@
+/* 1000 Nusantara Rental - Dashboard Reservasi
+   Tema minimal: hijau tua + abu terang, tanpa animasi, tanpa emoji. */
+
+:root {
+    --bg:        #F5F7F9;
+    --surface:   #FFFFFF;
+    --line:      #E3E8ED;
+    --ink:       #1B2733;
+    --ink-soft:  #64748B;
+    --primary:   #1E6F50;
+    --primary-d: #185D42;
+    --sidebar:   #0F2419;
+    --sidebar-2: #14311F;
+    --danger:    #C0392B;
+    --warning:   #B7791F;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+}
+
+.app { display: flex; min-height: 100vh; }
+
+/* ---------- SIDEBAR ---------- */
+.sidebar {
+    width: 240px; flex: 0 0 240px;
+    background: var(--sidebar);
+    color: #D7E3DB;
+    display: flex; flex-direction: column;
+}
+.sidebar-brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 18px 16px; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.brand-mark {
+    width: 38px; height: 38px; border-radius: 8px;
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; letter-spacing: .5px;
+}
+.brand-name { font-weight: 600; color: #fff; font-size: 14px; }
+.brand-sub  { font-size: 11px; color: #8FA79A; }
+
+.sidebar-nav { padding: 12px 10px; display: flex; flex-direction: column; gap: 4px; }
+.nav-item {
+    display: block; padding: 10px 12px; border-radius: 8px;
+    color: #C6D5CB; text-decoration: none; font-size: 13.5px;
+}
+.nav-item:hover { background: var(--sidebar-2); color: #fff; }
+.nav-item.active { background: var(--primary); color: #fff; }
+
+.sidebar-foot {
+    margin-top: auto; padding: 14px 16px;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+.user-name { font-size: 12.5px; color: #9FB5A7; margin-bottom: 8px; }
+.btn-logout {
+    width: 100%; background: transparent; border: 1px solid rgba(255,255,255,.2);
+    color: #D7E3DB; border-radius: 6px; padding: 6px 10px; font-size: 12.5px; cursor: pointer;
+}
+.btn-logout:hover { background: rgba(255,255,255,.08); }
+
+/* ---------- CONTENT ---------- */
+.content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.page-title { font-size: 17px; font-weight: 600; margin: 0; }
+.page { padding: 20px 24px 40px; }
+
+/* ---------- KARTU ---------- */
+.card-box {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px 18px;
+}
+.card-box + .card-box { margin-top: 16px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .4px; margin: 0 0 12px; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+.stat {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+}
+.stat-label { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
+.stat-value { font-size: 20px; font-weight: 600; }
+.stat-note  { font-size: 11.5px; color: var(--ink-soft); margin-top: 4px; }
+
+.papan-status { display: flex; flex-wrap: wrap; gap: 8px; }
+.papan-item {
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: #FBFCFD;
+    font-size: 12.5px; text-decoration: none; color: var(--ink);
+}
+.papan-item b { font-size: 15px; }
+
+/* ---------- TABEL ---------- */
+.table-wrap { overflow-x: auto; }
+table.tabel { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.tabel th {
+    text-align: left; padding: 10px 10px; background: #F8FAFB;
+    border-bottom: 1px solid var(--line); font-weight: 600; color: var(--ink-soft);
+    font-size: 12px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap;
+}
+table.tabel td { padding: 10px 10px; border-bottom: 1px solid #EFF2F5; vertical-align: top; }
+table.tabel tr:hover td { background: #FCFDFE; }
+table.tabel td.num, table.tabel th.num { text-align: right; white-space: nowrap; }
+table.tabel .muted { color: var(--ink-soft); font-size: 12px; }
+.table-kosong { padding: 26px; text-align: center; color: var(--ink-soft); }
+
+/* ---------- FORM ---------- */
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px 18px; }
+.form-grid .full { grid-column: 1 / -1; }
+.form-label { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; color: #33475B; }
+.form-label .wajib { color: var(--danger); }
+.form-control, .form-select { font-size: 13.5px; border-color: #D7DEE5; }
+.form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 .15rem rgba(30,111,80,.12); }
+.form-text { font-size: 11.5px; color: var(--ink-soft); }
+.section-step {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--line);
+}
+.step-no {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff;
+    font-size: 12px; display: flex; align-items: center; justify-content: center; font-weight: 600;
+}
+.step-title { font-weight: 600; font-size: 14px; }
+
+/* ---------- RINGKASAN ---------- */
+.ringkas { background: #F7FAF8; border: 1px solid #DCE7E1; border-radius: 10px; padding: 14px 16px; }
+.ringkas-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
+.ringkas-row.total { border-top: 1px solid #DCE7E1; margin-top: 6px; padding-top: 10px; font-size: 15px; font-weight: 600; }
+.ringkas-row.margin { color: var(--ink-soft); font-size: 12.5px; }
+
+/* ---------- ITEM UNIT ---------- */
+.item-unit { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: #FCFDFE; }
+.item-unit + .item-unit { margin-top: 12px; }
+.item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.item-head span { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+
+/* ---------- TAB ---------- */
+.tab-bar { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+.tab-bar a {
+    padding: 9px 14px; font-size: 13px; text-decoration: none; color: var(--ink-soft);
+    border-bottom: 2px solid transparent;
+}
+.tab-bar a.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+/* ---------- LOGIN ---------- */
+.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--sidebar); }
+.login-box { width: 360px; background: #fff; border-radius: 12px; padding: 28px; }
+.login-brand { text-align: center; margin-bottom: 20px; }
+.login-brand .brand-mark { margin: 0 auto 10px; }
+.login-brand h1 { font-size: 16px; margin: 0; }
+.login-brand p { font-size: 12.5px; color: var(--ink-soft); margin: 4px 0 0; }
+
+/* ---------- UTIL ---------- */
+.btn-primary { background: var(--primary); border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-d); border-color: var(--primary-d); }
+.btn-sm { font-size: 12.5px; }
+.mono { font-family: Consolas, "Courier New", monospace; }
+.baris-aksi { display: flex; flex-wrap: wrap; gap: 8px; }
+.dl-2 { display: grid; grid-template-columns: 150px 1fr; gap: 6px 14px; font-size: 13px; }
+.dl-2 dt { color: var(--ink-soft); font-weight: 400; }
+.dl-2 dd { margin: 0; }
+.text-soft { color: var(--ink-soft); }
+
+/* grafik batang sederhana (tanpa library) */
+.grafik { display: flex; align-items: flex-end; gap: 14px; height: 150px; padding: 10px 4px 0; }
+.grafik .kolom { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.grafik .batang { width: 100%; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 3px; }
+.grafik .batang.dim { background: #B7CBC0; }
+.grafik .kolom-label { font-size: 11px; color: var(--ink-soft); margin-top: 6px; }
+.grafik .kolom-nilai { font-size: 11px; color: var(--ink); margin-bottom: 4px; }
+
+@media (max-width: 900px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; flex: none; }
+    .sidebar-nav { flex-direction: row; overflow-x: auto; }
+    .stat-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .form-grid { grid-template-columns: 1fr; }
+}
