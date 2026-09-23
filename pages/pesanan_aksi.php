@@ -113,27 +113,37 @@ function terbitkanInvoice(array $order, int $revisiKe = 0, ?string $menggantikan
     $st->execute();
     $invoiceId = (int) $db->insert_id;
 
-    $ins = $db->prepare('INSERT INTO invoice_items (invoice_id, deskripsi, qty, satuan, harga_satuan, jumlah, urutan) VALUES (?,?,?,?,?,?,?)');
+    /* kolom mengikuti template invoice referensi:
+       No | Keterangan | Driver | Tgl Pemakaian | Rute | Harga/Hari | Total Hari | Total Harga */
+    $ins = $db->prepare('INSERT INTO invoice_items (invoice_id, no, keterangan, driver, tanggal_pakai, rute, harga_hari, total_hari, total_harga)
+                         VALUES (?,?,?,?,?,?,?,?,?)');
     $urut = 0;
+    $incTeks = implode(' + ', array_map(fn($x) => $x['nama'], $order['includes']));
     foreach ($order['items'] as $it) {
         $urut++;
-        $drv = $it['nama_driver'] ? ' + Driver ' . $it['nama_driver'] : '';
-        $desk = 'Sewa ' . $it['nama_unit'] . ' (' . $it['nopol'] . ')' . $drv
-              . ' - periode ' . tglAngka($order['tgl_mulai']) . ' s/d ' . tglAngka($order['tgl_finish']);
-        $inc = implode(' + ', array_map(fn($x) => $x['nama'], $order['includes']));
-        if ($inc !== '') $desk .= ' | Include: ' . $inc;
-        $qty = (int) $it['jumlah_hari'];
-        $hs  = (int) $it['harga_jual_per_hari'];
-        $jml = (int) $it['subtotal_jual'];
-        $sat = 'hari';
-        $ins->bind_param('isisiis', $invoiceId, $desk, $qty, $sat, $hs, $jml, $urut);
+        $keterangan = $it['nama_unit'] . "\n" . $it['nopol'];
+        if ($incTeks !== '') $keterangan .= "\nInclude: " . $incTeks;
+        $driver = (string) ($it['nama_driver'] ?: '');
+        $tanggal = formatRentang((string) $order['tgl_mulai'], (string) $order['tgl_finish']);
+        $rute = labelWilayah($order['wilayah_pelayanan']) . ' ' . $order['kota'];
+        if (!empty($order['tujuan'])) $rute .= "\n" . $order['tujuan'];
+        if (!empty($order['standby_point'])) $rute .= "\nStandby: " . $order['standby_point'];
+        $hargaHari = (int) $it['harga_jual_per_hari'];
+        $hari = (int) $it['jumlah_hari'];
+        $totalHarga = (int) $it['subtotal_jual'];
+        $ins->bind_param('iissssiii', $invoiceId, $urut, $keterangan, $driver, $tanggal, $rute, $hargaHari, $hari, $totalHarga);
         $ins->execute();
     }
     foreach ($order['biaya'] as $b) {
         $urut++;
-        $desk = $b['nama'];
-        $qty = 1; $sat = 'paket'; $hs = (int) $b['nominal']; $jml = (int) $b['nominal'];
-        $ins->bind_param('isisiis', $invoiceId, $desk, $qty, $sat, $hs, $jml, $urut);
+        $keterangan = (string) $b['nama'];
+        $driver = '';
+        $tanggal = '';
+        $rute = '';
+        $hargaHari = (int) $b['nominal'];
+        $hari = 1;
+        $totalHarga = (int) $b['nominal'];
+        $ins->bind_param('iissssiii', $invoiceId, $urut, $keterangan, $driver, $tanggal, $rute, $hargaHari, $hari, $totalHarga);
         $ins->execute();
     }
     return ['id' => $invoiceId, 'nomor' => $nomor];

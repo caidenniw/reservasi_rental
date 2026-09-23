@@ -222,14 +222,16 @@ CREATE TABLE invoices (
 ) ENGINE=InnoDB;
 
 CREATE TABLE invoice_items (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  invoice_id   INT NOT NULL,
-  deskripsi    VARCHAR(255) NOT NULL,
-  qty          INT NOT NULL DEFAULT 1,
-  satuan       VARCHAR(20) NOT NULL DEFAULT 'hari',
-  harga_satuan BIGINT NOT NULL DEFAULT 0,
-  jumlah       BIGINT NOT NULL DEFAULT 0,
-  urutan       TINYINT NOT NULL DEFAULT 0,
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  invoice_id    INT NOT NULL,
+  no            TINYINT NOT NULL DEFAULT 0,
+  keterangan    VARCHAR(255) NOT NULL,
+  driver        VARCHAR(100) NULL,
+  tanggal_pakai VARCHAR(60)  NULL,
+  rute          VARCHAR(255) NULL,
+  harga_hari    BIGINT NOT NULL DEFAULT 0,
+  total_hari    SMALLINT NOT NULL DEFAULT 1,
+  total_harga   BIGINT NOT NULL DEFAULT 0,
   KEY idx_invoice (invoice_id),
   CONSTRAINT fk_invitem FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -284,7 +286,7 @@ INSERT INTO includes (nama, urutan, is_default) VALUES
   ('Antar Jemput Bandara', 9, 0);
 
 INSERT INTO settings (`key`, `value`, label, grup, urutan) VALUES
-  ('nama_pt',          'PT. SERIBU NUSANTARA RENTAL', 'Nama perusahaan', 'kop', 1),
+  ('nama_pt',          'PT. Seribu Nusantara Rental',  'Nama perusahaan', 'kop', 1),
   ('brand',            '1000 RENT CAR',                'Nama brand', 'kop', 2),
   ('tagline',          '"1000 RENT CAR - SOLUSI PERJALANAN MERANGKAI NUSANTARA"', 'Tagline', 'kop', 3),
   ('alamat_pt',        '',                             'Alamat kantor', 'kop', 4),
@@ -302,4 +304,9 @@ INSERT INTO settings (`key`, `value`, label, grup, urutan) VALUES
   ('prefix_invoice',   'INV',                          'Awalan nomor invoice', 'nomor', 2),
   ('footer_invoice',   'Terimakasih atas Pilihan Perjalanan Anda Bersama Kami. Anda Dapat Memesan Rental Mobil SE INDONESIA Karena Kami Hadir Di 38 PROVINSI.', 'Catatan kaki invoice', 'kop', 10),
   ('ttd_nama',         '',                             'Nama penandatangan', 'kop', 11),
-  ('ttd_jabatan',      'Admin Reservasi',              'Jabatan penandatangan', 'kop', 12);
+  ('ttd_jabatan',      'Admin Reservasi',              'Jabatan penandatangan', 'kop', 12),
+  ('penandatangan',    'Yuswanto SH',                  'Nama penandatangan invoice', 'kop', 13),
+  ('email_pt2',        '1000rentcarmedan@gmail.com',   'Email kedua (header invoice)', 'kop', 14),
+  ('logo',             'assets/img/logo.png',          'Path logo (header invoice)', 'kop', 15),
+  ('ttd',              'assets/img/ttd.png',           'Path gambar tanda tangan', 'kop', 16),
+  ('catatan_bank',     'A/C : 002-6366-1000 (SMBC)\nA/C : 30523-1000-1 (BNI)\nA/N : PT. SERIBU NUSANTARA RENTAL', 'Catatan / info bank (kotak CATATAN invoice)', 'bayar', 6);

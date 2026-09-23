@@ -92,6 +92,32 @@ function bulanPanjang(int $b): string
 {
     return ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][$b] ?? '';
 }
+function terbilang(int $n): string
+{
+    if ($n < 0) return 'Minus ' . terbilang(-$n);
+    $angka = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+    if ($n < 12) return $angka[$n];
+    if ($n < 20) return terbilang($n - 10) . ' Belas';
+    if ($n < 100) return terbilang(intdiv($n, 10)) . ' Puluh' . ($n % 10 ? ' ' . terbilang($n % 10) : '');
+    if ($n < 200) return 'Seratus' . ($n - 100 ? ' ' . terbilang($n - 100) : '');
+    if ($n < 1000) return terbilang(intdiv($n, 100)) . ' Ratus' . ($n % 100 ? ' ' . terbilang($n % 100) : '');
+    if ($n < 2000) return 'Seribu' . ($n - 1000 ? ' ' . terbilang($n - 1000) : '');
+    if ($n < 1000000) return terbilang(intdiv($n, 1000)) . ' Ribu' . ($n % 1000 ? ' ' . terbilang($n % 1000) : '');
+    if ($n < 1000000000) return terbilang(intdiv($n, 1000000)) . ' Juta' . ($n % 1000000 ? ' ' . terbilang($n % 1000000) : '');
+    if ($n < 1000000000000) return terbilang(intdiv($n, 1000000000)) . ' Miliar' . ($n % 1000000000 ? ' ' . terbilang($n % 1000000000) : '');
+    return terbilang(intdiv($n, 1000000000000)) . ' Triliun' . ($n % 1000000000000 ? ' ' . terbilang($n % 1000000000000) : '');
+}
+
+function formatRentang(string $mulai, string $finish): string
+{
+    $a = strtotime($mulai); $b = strtotime($finish);
+    if (!$a || !$b) return '-';
+    if (date('m', $a) === date('m', $b) && date('Y', $a) === date('Y', $b)) {
+        return date('d', $a) . '-' . date('d', $b) . ' ' . bulanSingkat((int) date('n', $a)) . ' ' . date('y', $a);
+    }
+    return date('d', $a) . ' ' . bulanSingkat((int) date('n', $a)) . ' - ' . date('d', $b) . ' ' . bulanSingkat((int) date('n', $b)) . ' ' . date('y', $b);
+}
+
 function hitungHari(?string $mulai, ?string $finish): int
 {
     if (!$mulai || !$finish) return 0;

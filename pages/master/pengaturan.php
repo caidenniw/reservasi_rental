@@ -35,9 +35,9 @@ include __DIR__ . '/../../includes/header.php';
             <h2 class="card-title"><?= e($judulGrup[$nama] ?? ucfirst($nama)) ?></h2>
             <div class="form-grid">
                 <?php foreach ($rows as $s): ?>
-                    <div class="<?= in_array($s['key'], ['footer_invoice', 'tagline'], true) ? 'col-12' : 'col-md-6' ?>">
+                    <div class="<?= in_array($s['key'], ['footer_invoice', 'tagline', 'catatan_bank'], true) ? 'col-12' : 'col-md-6' ?>">
                         <label class="form-label" for="s_<?= e($s['key']) ?>"><?= e($s['label'] ?: $s['key']) ?></label>
-                        <?php if (in_array($s['key'], ['footer_invoice', 'tagline'], true)): ?>
+                        <?php if (in_array($s['key'], ['footer_invoice', 'tagline', 'catatan_bank'], true)): ?>
                             <textarea class="form-control" id="s_<?= e($s['key']) ?>" name="<?= e($s['key']) ?>" rows="3"><?= e($s['value']) ?></textarea>
                         <?php else: ?>
                             <input type="text" class="form-control" id="s_<?= e($s['key']) ?>" name="<?= e($s['key']) ?>" value="<?= e($s['value']) ?>">

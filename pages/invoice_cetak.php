@@ -1,43 +1,55 @@
 <?php
 /**
- * Halaman cetak invoice (standalone, tanpa sidebar).
- *   ?id=ID                 -> invoice customer (tanpa modal & margin)
- *   ?id=ID&mode=internal   -> lembar order internal (dengan modal, margin, partner)
+ * Halaman cetak invoice (standalone, tanpa sidebar) — mengikuti template referensi:
+ * D:\maganghub\invoice\New folder\cetak.php
+ *   ?id=ID                -> invoice customer (tanpa modal & margin)
+ *   ?id=ID&mode=internal  -> lembar order internal (dengan modal, margin, partner)
+ *   ?id=ID&embed=1        -> mode pratinjau (tanpa toolbar, skala kecil)
  */
 require_once __DIR__ . '/../includes/functions.php';
 requireLogin();
 $db = getDB();
 
-$id   = (int) ($_GET['id'] ?? 0);
-$mode = ($_GET['mode'] ?? '') === 'internal' ? 'internal' : 'customer';
-$embed = (($_GET['embed'] ?? '') === '1');   /* mode pratinjau di dalam iframe: tanpa toolbar, skala kecil */
+$id    = (int) ($_GET['id'] ?? 0);
+$mode  = ($_GET['mode'] ?? '') === 'internal' ? 'internal' : 'customer';
+$embed = (($_GET['embed'] ?? '') === '1');
 
 $st = $db->prepare('SELECT * FROM invoices WHERE id = ?');
 $st->bind_param('i', $id);
 $st->execute();
 $inv = $st->get_result()->fetch_assoc();
-if (!$inv) {
-    die('Invoice tidak ditemukan.');
-}
+if (!$inv) die('Invoice tidak ditemukan.');
+
 $order = ambilOrder((int) $inv['order_id']);
-if (!$order) {
-    die('Pesanan untuk invoice ini tidak ditemukan.');
-}
-$st = $db->prepare('SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY urutan, id');
+if (!$order) die('Pesanan untuk invoice ini tidak ditemukan.');
+
+$st = $db->prepare('SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY no, id');
 $st->bind_param('i', $id);
 $st->execute();
 $items = $st->get_result()->fetch_all(MYSQLI_ASSOC);
 
-$st = $db->prepare('SELECT COALESCE(SUM(nominal),0) d FROM payments WHERE invoice_id = ?');
+$st = $db->prepare('SELECT COALESCE(SUM(CASE WHEN tipe = "dp" THEN nominal ELSE 0 END),0) dp,
+                           COALESCE(SUM(nominal),0) total FROM payments WHERE invoice_id = ?');
 $st->bind_param('i', $id);
 $st->execute();
-$dibayar = (int) $st->get_result()->fetch_assoc()['d'];
-$sisa = max(0, (int) $inv['total'] - $dibayar);
+$p = $st->get_result()->fetch_assoc();
+$dpSum  = (int) $p['dp'];
+$dibayar = (int) $p['total'];
+$sisa   = max(0, (int) $inv['total'] - $dibayar);
 
-$snap = json_decode((string) $inv['order_snapshot'], true) ?: [];
-$custSnap = json_decode((string) $inv['customer_snapshot'], true) ?: [];
-$includeTeks = $snap['include'] ?? implode(' + ', array_map(fn($x) => $x['nama'], $order['includes']));
-$batal = $inv['status'] === 'batal';
+$custSnap  = json_decode((string) $inv['customer_snapshot'], true) ?: [];
+$snap      = json_decode((string) $inv['order_snapshot'], true) ?: [];
+$batal     = $inv['status'] === 'batal';
+
+function tglSingkat(?string $tgl): string
+{
+    if (!$tgl) return '-';
+    $t = strtotime($tgl);
+    return $t ? date('d', $t) . '-' . bulanSingkat((int) date('n', $t)) . '-' . date('y', $t) : '-';
+}
+
+$namaPT = getSetting('nama_pt', 'PT. Seribu Nusantara Rental');
+$totalInv = (int) $inv['total'];
 ?>
 <!doctype html>
 <html lang="id">
@@ -45,200 +57,264 @@ $batal = $inv['status'] === 'batal';
 <meta charset="utf-8">
 <title><?= $mode === 'internal' ? 'Lembar Internal' : 'Invoice' ?> <?= e($inv['nomor_invoice']) ?></title>
 <style>
-    /* ---- layar ---- */
-    body { font-family: "Times New Roman", Georgia, serif; font-size: 12pt; line-height: 1.5; background: #f0f0f0; margin: 0; color: #111; }
-    .lembar { width: 210mm; min-height: 297mm; margin: 20px auto; padding: 18mm 18mm 14mm 18mm; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,.2); position: relative; }
-    .no-print { max-width: 210mm; margin: 16px auto 0; display: flex; gap: 8px; }
-    .no-print button, .no-print a { font-family: "Segoe UI", Arial, sans-serif; font-size: 13px; padding: 8px 14px; border: 1px solid #e62e2e; background: #e62e2e; color: #fff; border-radius: 6px; cursor: pointer; text-decoration: none; }
-    .no-print a.abu { background: #fff; color: #33475B; border-color: #CBD5E0; }
-
-    .kop { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e62e2e; padding-bottom: 10px; }
-    .kop .brand { font-size: 20pt; font-weight: bold; color: #e62e2e; letter-spacing: .5px; }
-    .kop .brand small { display: block; font-size: 9.5pt; font-weight: normal; color: #33475B; letter-spacing: 0; }
-    .kop .kontak { text-align: right; font-size: 9.5pt; color: #33475B; }
-    .judul { text-align: center; margin: 16px 0 6px; font-size: 16pt; font-weight: bold; letter-spacing: 3px; }
-    .nomor { text-align: center; font-size: 11pt; margin-bottom: 14px; }
-    .tanda-internal { text-align: center; font-size: 10pt; color: #B7791F; font-weight: bold; letter-spacing: 1px; }
-
-    .dua-kolom { display: flex; gap: 20px; margin-bottom: 14px; }
-    .kotak { flex: 1; border: 1px solid #CBD5E0; padding: 8px 10px; font-size: 10.5pt; }
-    .kotak h4 { margin: 0 0 6px; font-size: 10pt; text-transform: uppercase; letter-spacing: .5px; color: #4A5568; }
-    .kotak table { width: 100%; font-size: 10.5pt; }
-    .kotak td { vertical-align: top; padding: 1px 0; }
-    .kotak td.k { width: 82px; color: #4A5568; }
-
-    table.rincian { width: 100%; border-collapse: collapse; font-size: 10.5pt; margin-top: 6px; }
-    table.rincian th { border: 1px solid #CBD5E0; background: #F2F6F4; padding: 6px; text-align: left; font-size: 10pt; }
-    table.rincian td { border: 1px solid #CBD5E0; padding: 6px; vertical-align: top; }
-    table.rincian td.num, table.rincian th.num { text-align: right; white-space: nowrap; }
-
-    .total-box { width: 62mm; margin-left: auto; margin-top: 10px; font-size: 11pt; }
-    .total-box table { width: 100%; }
-    .total-box td { padding: 3px 0; }
-    .total-box td.num { text-align: right; }
-    .total-box tr.besar td { border-top: 1px solid #333; border-bottom: 1px double #333; font-weight: bold; font-size: 12pt; }
-
-    .bayar { margin-top: 16px; border: 1px solid #CBD5E0; padding: 10px; font-size: 10.5pt; }
-    .bayar h4 { margin: 0 0 6px; font-size: 10pt; text-transform: uppercase; letter-spacing: .5px; color: #4A5568; }
-    .footer { margin-top: 18px; font-size: 10pt; text-align: center; color: #33475B; }
-    .ttd { margin-top: 26px; display: flex; justify-content: flex-end; }
-    .ttd div { text-align: center; font-size: 11pt; }
-    .ttd .ruang { height: 60px; }
-    .watermark { position: absolute; top: 42%; left: 0; right: 0; text-align: center; font-size: 60pt; color: rgba(192,57,43,.16); font-weight: bold; transform: rotate(-18deg); letter-spacing: 8px; }
-
-    body.embed .no-print { display: none !important; }
-    body.embed { background: #fff; }
-    body.embed .lembar { width: 100%; min-height: 0; margin: 0; box-shadow: none; padding: 6mm 7mm; zoom: .52; }
+    @page { size: A4 portrait; margin: 12mm 16mm 12mm 16mm; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Aptos Narrow', 'Segoe UI', Calibri, Arial, sans-serif;
+        font-size: 11pt; color: #000; background: #e0e0e0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    .invoice-page {
+        width: 210mm; min-height: 297mm; margin: 8mm auto;
+        background: #fff; padding: 16mm 16mm; box-shadow: 0 0 15px rgba(0,0,0,.15); position: relative;
+    }
+    .no-print { max-width: 210mm; margin: 14px auto 0; display: flex; gap: 10px; flex-wrap: wrap; }
+    .no-print button, .no-print a {
+        font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; padding: 8px 16px;
+        border: none; border-radius: 6px; cursor: pointer; text-decoration: none; font-weight: 600;
+    }
+    .no-print .cetak { background: #FFC000; color: #000; }
+    .no-print .abu { background: #555; color: #fff; }
 
     @media print {
         body { background: #fff; }
+        .invoice-page { margin: 0; padding: 0; box-shadow: none; width: 100%; min-height: auto; }
         .no-print { display: none !important; }
-        .lembar { width: 100%; margin: 0; padding: 12mm 14mm; box-shadow: none; min-height: auto; }
-        @page { size: A4; margin: 0; }
-        table.rincian { page-break-inside: auto; }
-        tr { page-break-inside: avoid; }
     }
+    body.embed .no-print { display: none !important; }
+    body.embed { background: #fff; }
+    body.embed .invoice-page { width: 100%; min-height: 0; margin: 0; box-shadow: none; padding: 5mm 6mm; zoom: .55; }
+
+    /* ===== HEADER ===== */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .header-left { flex: 1; }
+    .header-left img { max-height: 52px; max-width: 187px; }
+    .header-right { text-align: right; }
+    .header-right .invoice-title { font-size: 24pt; font-weight: 700; letter-spacing: 2px; }
+    .header-right .company-name { font-size: 12pt; font-weight: 700; margin-top: 2px; }
+    .header-right .company-info { font-size: 9pt; margin-top: 2px; line-height: 1.4; }
+
+    /* ===== INFO ===== */
+    .info-section { display: flex; margin-bottom: 10px; }
+    .info-left, .info-right { border: 1px solid #000; padding: 8px 10px; }
+    .info-left { flex: 0 0 46%; }
+    .info-right { flex: 1; }
+    .info-left .label { font-weight: 700; font-size: 11pt; margin-bottom: 4px; }
+    .info-left .client-name { font-weight: 700; font-size: 14pt; line-height: 1.3; }
+    .info-right table { width: 100%; }
+    .info-right td { padding: 2px 0; font-size: 11pt; vertical-align: top; }
+    .info-right td:first-child { font-weight: 700; width: 42%; }
+    .info-right td.colon { width: 5%; text-align: center; font-weight: 700; }
+    .info-right td:last-child { font-weight: 700; }
+
+    /* ===== TABEL UTAMA ===== */
+    .main-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+    .main-table thead th {
+        background: #FFC000 !important; font-weight: 700; font-size: 11pt;
+        padding: 6px 4px; border: 1px solid #000; text-align: center; vertical-align: middle;
+        -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+    }
+    .main-table tbody td { border-left: 1px solid #000; border-right: 1px solid #000; padding: 5px 6px; vertical-align: top; }
+    .main-table .col-no { text-align: center; width: 24px; }
+    .main-table .col-ket { width: 100px; }
+    .main-table .col-driver { width: 52px; }
+    .main-table .col-tgl { width: 64px; }
+    .main-table .col-rute { width: 96px; }
+    .main-table .col-harga { text-align: right; width: 76px; }
+    .main-table .col-modal { text-align: right; width: 70px; }
+    .main-table .col-hari { text-align: center; width: 32px; }
+    .main-table .col-total { text-align: right; width: 88px; }
+    .main-table tbody tr:not(:first-child) td { border-top: 1px solid #000; }
+
+    .main-table tfoot td { border: 1px solid #000; padding: 4px 6px; font-size: 10pt; font-weight: 700; }
+    .main-table tfoot .label-cell { text-align: center; }
+    .main-table tfoot .hari-cell { text-align: center; }
+    .main-table tfoot .amount-cell { text-align: right; }
+
+    /* ===== TERBILANG ===== */
+    .terbilang { margin-top: 10px; font-size: 10pt; font-style: italic; font-weight: 700; }
+    .terbilang .label { font-style: italic; font-weight: 700; }
+
+    /* ===== FOOTER ===== */
+    .footer { display: flex; justify-content: space-between; margin-top: 22px; }
+    .footer-left { flex: 0 0 46%; border: 1px solid #000; padding: 8px 10px; font-size: 10.5pt; font-weight: 700; line-height: 1.5; }
+    .footer-left .catatan-title { font-weight: 700; margin-bottom: 2px; }
+    .footer-right { text-align: center; font-size: 11pt; padding-top: 4px; }
+    .footer-right .hormat { font-weight: 700; margin-bottom: 4px; }
+    .footer-right .company { font-weight: 700; }
+    .footer-right .ttd-space { height: 58px; display: flex; align-items: center; justify-content: center; }
+    .footer-right .ttd-space img { max-height: 58px; }
+    .footer-right .nama { font-weight: 700; }
+
+    .internal-box { border: 1px solid #000; padding: 8px 10px; margin-top: 10px; font-size: 10.5pt; }
+    .internal-box table { width: 100%; }
+    .internal-box td { padding: 2px 0; }
+    .internal-box td.num { text-align: right; }
+    .tanda-internal { text-align: center; font-size: 11pt; font-weight: 700; color: #c22424; letter-spacing: 1px; margin-bottom: 8px; }
+    .watermark { position: absolute; top: 40%; left: 0; right: 0; text-align: center; font-size: 64pt; color: rgba(192,57,43,.15); font-weight: 700; transform: rotate(-18deg); letter-spacing: 8px; }
 </style>
 </head>
 <body<?= $embed ? ' class="embed"' : '' ?>>
 
 <div class="no-print">
-    <button onclick="window.print()">Cetak / Simpan PDF</button>
-    <a href="<?= BASE_URL ?>/pages/pesanan_detail.php?id=<?= (int) $order['id'] ?>" class="abu">Kembali ke Pesanan</a>
+    <button class="cetak" onclick="window.print()">Print / Simpan PDF</button>
+    <a class="abu" href="<?= BASE_URL ?>/pages/pesanan_detail.php?id=<?= (int) $order['id'] ?>">Kembali ke Pesanan</a>
     <?php if ($mode === 'customer'): ?>
-        <a href="?id=<?= (int) $id ?>&mode=internal" class="abu">Lihat Lembar Internal</a>
+        <a class="abu" href="?id=<?= (int) $id ?>&mode=internal">Lihat Lembar Internal</a>
     <?php else: ?>
-        <a href="?id=<?= (int) $id ?>" class="abu">Lihat Versi Customer</a>
+        <a class="abu" href="?id=<?= (int) $id ?>">Lihat Versi Customer</a>
     <?php endif; ?>
 </div>
 
-<div class="lembar">
+<div class="invoice-page">
     <?php if ($batal): ?><div class="watermark">BATAL</div><?php endif; ?>
 
-    <div class="kop">
-        <div class="brand">
-            <?= e(getSetting('nama_pt', 'PT. SERIBU NUSANTARA RENTAL')) ?>
-            <small><?= e(getSetting('brand', '1000 RENT CAR')) ?><?= getSetting('tagline') ? ' | ' . e(getSetting('tagline')) : '' ?></small>
+    <div class="header">
+        <div class="header-left">
+            <img src="<?= BASE_URL ?>/<?= e(getSetting('logo')) ?>" alt="Logo" onerror="this.style.display='none'">
         </div>
-        <div class="kontak">
-            <?php if (getSetting('alamat_pt')): ?><?= e(getSetting('alamat_pt')) ?><br><?php endif; ?>
-            <?php if (getSetting('telepon_pt')): ?><?= e(getSetting('telepon_pt')) ?><br><?php endif; ?>
-            <?= e(getSetting('email_pt')) ?><br><?= e(getSetting('website_pt')) ?>
+        <div class="header-right">
+            <div class="invoice-title">INVOICE</div>
+            <div class="company-name"><?= e($namaPT) ?></div>
+            <div class="company-info">
+                <?= e(getSetting('website_pt')) ?> <?= e(getSetting('email_pt')) ?><br>
+                <?= e(getSetting('email_pt2')) ?>
+            </div>
         </div>
     </div>
 
-    <div class="judul">INVOICE</div>
-    <div class="nomor">
-        No: <b><?= e($inv['nomor_invoice']) ?></b>
-        <?= (int) $inv['nomor_revisi_ke'] > 0 ? ' &middot; REVISI ke-' . (int) $inv['nomor_revisi_ke'] : '' ?>
-        &middot; Tanggal: <?= e(tglAngka($inv['tanggal_invoice'])) ?>
-        <?php if ($inv['jatuh_tempo']): ?> &middot; Jatuh tempo: <?= e(tglAngka($inv['jatuh_tempo'])) ?><?php endif; ?>
-    </div>
     <?php if ($mode === 'internal'): ?>
-        <div class="tanda-internal">LEMBAR ORDER INTERNAL - TIDAK UNTUK CUSTOMER</div>
+        <div class="tanda-internal">LEMBAR ORDER INTERNAL — TIDAK UNTUK CUSTOMER</div>
     <?php endif; ?>
 
-    <div class="dua-kolom">
-        <div class="kotak">
-            <h4>Ditagihkan kepada</h4>
-            <table>
-                <tr><td class="k">Nama</td><td>: <?= e($custSnap['nama'] ?? $order['nama_pesanan']) ?></td></tr>
-                <tr><td class="k">PIC</td><td>: <?= e($custSnap['pic'] ?? $order['nama_pic'] ?: '-') ?></td></tr>
-                <tr><td class="k">HP/WA</td><td>: <?= e($custSnap['hp'] ?? $order['hp_pic'] ?: '-') ?></td></tr>
-                <?php if (!empty($custSnap['alamat'])): ?><tr><td class="k">Alamat</td><td>: <?= e($custSnap['alamat']) ?></td></tr><?php endif; ?>
-            </table>
+    <div class="info-section">
+        <div class="info-left">
+            <div class="label">DITAGIH KEPADA</div>
+            <div class="client-name">
+                <?= e($custSnap['nama'] ?? $order['nama_pesanan']) ?><br>
+                <?= e($custSnap['pic'] ?? $order['nama_pic'] ?: '') ?>
+            </div>
         </div>
-        <div class="kotak">
-            <h4>Detail pesanan</h4>
+        <div class="info-right">
             <table>
-                <tr><td class="k">No. Order</td><td>: <?= e($order['nomor_order']) ?></td></tr>
-                <tr><td class="k">Pelayanan</td><td>: <?= e(labelWilayah($snap['wilayah'] ?? $order['wilayah_pelayanan'])) ?> <?= e($snap['kota'] ?? $order['kota']) ?></td></tr>
-                <tr><td class="k">Standby</td><td>: <?= e(($snap['standby_point'] ?? $order['standby_point']) ?: '-') ?></td></tr>
-                <tr><td class="k">Flight</td><td>: <?= e(($snap['flight'] ?? $order['flight']) ?: '-') ?></td></tr>
-                <tr><td class="k">Jam</td><td>: <?= (($snap['jam_koordinasi'] ?? $order['jam_koordinasi']) ? 'Koordinasi dengan user' : e(($snap['jam'] ?? $order['jam']) ?: '-')) ?></td></tr>
+                <tr>
+                    <td>No. Faktur</td><td class="colon">:</td>
+                    <td><?= e($inv['nomor_invoice']) ?><?= (int) $inv['nomor_revisi_ke'] > 0 ? ' (revisi ke-' . (int) $inv['nomor_revisi_ke'] . ')' : '' ?></td>
+                </tr>
+                <tr>
+                    <td>Tanggal</td><td class="colon">:</td>
+                    <td><?= tglSingkat($inv['tanggal_invoice']) ?></td>
+                </tr>
+                <tr>
+                    <td>Jatuh Tempo</td><td class="colon">:</td>
+                    <td><?= tglSingkat($inv['jatuh_tempo']) ?></td>
+                </tr>
             </table>
         </div>
     </div>
 
-    <table class="rincian">
+    <table class="main-table">
         <thead>
-        <tr>
-            <th style="width:8mm">No</th>
-            <th>Deskripsi</th>
-            <th class="num" style="width:16mm">Qty</th>
-            <th class="num" style="width:28mm">Harga</th>
-            <th class="num" style="width:28mm">Jumlah</th>
-            <?php if ($mode === 'internal'): ?><th class="num" style="width:28mm">Modal</th><?php endif; ?>
-        </tr>
+            <tr>
+                <th class="col-no">No.</th>
+                <th class="col-ket">Keterangan</th>
+                <th class="col-driver">Driver</th>
+                <th class="col-tgl">Tanggal<br>Pemakaian</th>
+                <th class="col-rute">Rute Perjalanan /<br>Keterangan</th>
+                <th class="col-harga">Harga/Hari<br>(Rp.)</th>
+                <?php if ($mode === 'internal'): ?><th class="col-modal">Modal/Hari<br>(Rp.)</th><?php endif; ?>
+                <th class="col-hari">Total<br>Hari</th>
+                <th class="col-total">Total Harga</th>
+            </tr>
         </thead>
         <tbody>
-        <?php $no = 0; foreach ($items as $it): $no++; ?>
-            <tr>
-                <td><?= $no ?></td>
-                <td><?= e($it['deskripsi']) ?></td>
-                <td class="num"><?= (int) $it['qty'] ?> <?= e($it['satuan']) ?></td>
-                <td class="num"><?= rupiah($it['harga_satuan'], false) ?></td>
-                <td class="num"><?= rupiah($it['jumlah'], false) ?></td>
-                <?php if ($mode === 'internal'): ?>
-                    <td class="num">
-                        <?php
-                        $baris = $no - 1;
-                        $modal = 0;
-                        if (isset($order['items'][$baris])) {
-                            $modal = (int) $order['items'][$baris]['subtotal_modal'];
-                        }
-                        echo rupiah($modal, false);
-                        ?>
-                    </td>
+            <?php $maxRow = max(count($items), 3); $idx = 0; ?>
+            <?php for ($i = 0; $i < $maxRow; $i++): ?>
+                <?php $it = $items[$i] ?? null; ?>
+                <?php if ($it): ?>
+                <tr>
+                    <td class="col-no"><?= (int) $it['no'] ?></td>
+                    <td class="col-ket"><?= nl2br(e($it['keterangan'])) ?></td>
+                    <td class="col-driver"><?= nl2br(e($it['driver'])) ?></td>
+                    <td class="col-tgl"><?= e($it['tanggal_pakai']) ?></td>
+                    <td class="col-rute"><?= nl2br(e($it['rute'])) ?></td>
+                    <td class="col-harga">Rp <?= rupiah($it['harga_hari'], false) ?></td>
+                    <?php if ($mode === 'internal'): ?>
+                        <td class="col-modal">
+                            <?php
+                            $modal = 0;
+                            if (isset($order['items'][$idx])) $modal = (int) $order['items'][$idx]['harga_modal_per_hari'];
+                            echo rupiah($modal, false);
+                            $idx++;
+                            ?>
+                        </td>
+                    <?php endif; ?>
+                    <td class="col-hari"><?= (int) $it['total_hari'] ?></td>
+                    <td class="col-total">Rp <?= rupiah($it['total_harga'], false) ?></td>
+                </tr>
+                <?php else: ?>
+                <tr>
+                    <td class="col-no">&nbsp;</td>
+                    <td class="col-ket">&nbsp;</td>
+                    <td class="col-driver">&nbsp;</td>
+                    <td class="col-tgl">&nbsp;</td>
+                    <td class="col-rute">&nbsp;</td>
+                    <td class="col-harga">&nbsp;</td>
+                    <?php if ($mode === 'internal'): ?><td class="col-modal">&nbsp;</td><?php endif; ?>
+                    <td class="col-hari">&nbsp;</td>
+                    <td class="col-total">&nbsp;</td>
+                </tr>
                 <?php endif; ?>
-            </tr>
-        <?php endforeach; ?>
+            <?php endfor; ?>
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="<?= $mode === 'internal' ? 7 : 6 ?>" class="label-cell">Total</td>
+                <td class="hari-cell">-</td>
+                <td class="amount-cell">Rp <?= rupiah($totalInv, false) ?></td>
+            </tr>
+            <tr>
+                <td colspan="<?= $mode === 'internal' ? 7 : 6 ?>" class="label-cell">Down Payment</td>
+                <td class="hari-cell">-</td>
+                <td class="amount-cell"><?= $dpSum > 0 ? 'Rp ' . rupiah($dpSum, false) : '-' ?></td>
+            </tr>
+            <tr>
+                <td colspan="<?= $mode === 'internal' ? 7 : 6 ?>" class="label-cell">Total Yang Harus Di Bayar</td>
+                <td class="hari-cell">-</td>
+                <td class="amount-cell">Rp <?= rupiah($sisa, false) ?></td>
+            </tr>
+        </tfoot>
     </table>
 
-    <div class="total-box">
-        <table>
-            <tr><td>Subtotal</td><td class="num"><?= rupiah($order['total_jual'], false) ?></td></tr>
-            <tr><td>Biaya tambahan</td><td class="num"><?= rupiah($order['total_tambahan'], false) ?></td></tr>
-            <tr class="besar"><td>TOTAL</td><td class="num"><?= rupiah($inv['total'], false) ?></td></tr>
-            <tr><td>Sudah dibayar</td><td class="num"><?= rupiah($dibayar, false) ?></td></tr>
-            <tr><td>Sisa</td><td class="num"><?= rupiah($sisa, false) ?></td></tr>
-        </table>
-    </div>
+    <div class="terbilang"><span class="label">Terbilang :</span> <?= e(terbilang($sisa)) ?> Rupiah</div>
 
     <?php if ($mode === 'internal'): ?>
-        <div class="bayar">
-            <h4>Ringkasan internal</h4>
-            <table style="width:100%;font-size:10.5pt">
-                <tr><td>Total modal unit</td><td class="num" style="text-align:right"><?= rupiah($order['total_modal'], false) ?></td></tr>
-                <tr><td>Biaya tambahan</td><td class="num" style="text-align:right"><?= rupiah($order['total_tambahan'], false) ?></td></tr>
-                <tr><td><b>Margin</b></td><td class="num" style="text-align:right"><b><?= rupiah($order['margin'], false) ?></b></td></tr>
-                <tr><td>Support By / partner</td><td style="text-align:right"><?= e($order['partner_nama'] ?: '-') ?></td></tr>
-                <tr><td>Include</td><td style="text-align:right"><?= e($includeTeks ?: '-') ?></td></tr>
-                <tr><td>Handle By</td><td style="text-align:right"><?= e($order['handle_by'] ?: '-') ?></td></tr>
-                <?php if ($order['catatan']): ?><tr><td>Catatan</td><td style="text-align:right"><?= e($order['catatan']) ?></td></tr><?php endif; ?>
-            </table>
-        </div>
+    <div class="internal-box">
+        <table>
+            <tr><td>Total modal unit</td><td class="num">Rp <?= rupiah($order['total_modal'], false) ?></td></tr>
+            <tr><td>Biaya tambahan</td><td class="num">Rp <?= rupiah($order['total_tambahan'], false) ?></td></tr>
+            <tr><td><b>Margin</b></td><td class="num"><b>Rp <?= rupiah($order['margin'], false) ?></b></td></tr>
+            <tr><td>Support By / partner</td><td class="num"><?= e($order['partner_nama'] ?: '-') ?></td></tr>
+            <tr><td>Handle By</td><td class="num"><?= e($order['handle_by'] ?: '-') ?></td></tr>
+            <?php if ($order['catatan']): ?><tr><td>Catatan</td><td class="num"><?= e($order['catatan']) ?></td></tr><?php endif; ?>
+        </table>
+    </div>
     <?php endif; ?>
 
-    <div class="bayar">
-        <h4>Pembayaran</h4>
-        <?= e(getSetting('bank_nama')) ?> <?= e(getSetting('bank_rekening')) ?><br>
-        a/n <?= e(getSetting('bank_atas_nama')) ?>
-        <?php if (getSetting('npwp')): ?><br>NPWP: <?= e(getSetting('npwp')) ?><?php endif; ?>
-    </div>
-
     <div class="footer">
-        <?= e(getSetting('footer_invoice')) ?><br>
-        <?php if (getSetting('tagline')): ?><b><?= e(getSetting('tagline')) ?></b><?php endif; ?>
-    </div>
-
-    <div class="ttd">
-        <div>
-            <div><?= e($snap['kota'] ?? $order['kota']) ?>, <?= e(tglAngka($inv['tanggal_invoice'])) ?></div>
-            <div><?= e(getSetting('ttd_jabatan', 'Admin Reservasi')) ?></div>
-            <div class="ruang"></div>
-            <div><?= e(getSetting('ttd_nama') ?: '____________________') ?></div>
+        <div class="footer-left">
+            <div class="catatan-title">CATATAN</div>
+            <?= nl2br(e(getSetting('catatan_bank'))) ?>
+        </div>
+        <div class="footer-right">
+            <div class="hormat">Hormat Saya</div>
+            <div class="company"><?= e($namaPT) ?></div>
+            <div class="ttd-space">
+                <img src="<?= BASE_URL ?>/<?= e(getSetting('ttd')) ?>" alt="Tanda Tangan" onerror="this.parentElement.innerHTML='<br><br><br>'">
+            </div>
+            <div class="nama"><?= e(getSetting('penandatangan', 'Yuswanto SH')) ?></div>
         </div>
     </div>
 </div>

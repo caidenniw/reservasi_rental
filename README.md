@@ -130,3 +130,25 @@ boleh dihapus dari halaman detail kapan saja.
   pada tabel `users` + filter di query **sebelum** dibagikan (sekarang semua yang login melihat semua data).
 - Deploy belum dilakukan (sesuai keputusan: cukup laptop). Struktur dibuat portable:
   `BASE_URL` dihitung otomatis, tidak ada CDN, tidak ada library eksternal.
+
+
+---
+
+## 7. Pembaruan (restyle + audit, 23-09-2026)
+
+Tampilan disamakan dengan referensi korporat mentor (gambar di `D:\maganghub\refrensiui`):
+
+- Warna utama hijau -> **merah #e62e2e** + sidebar gelap gradasi (#1a1c21 -> merah) + slogan
+  "Satu Sistem Seribu Perjalanan" di sidebar.
+- Font **Inter** (file woff2 diunduh lokal di `assets/fonts/`, tanpa CDN).
+- Badge status jadi **pill pastel** (Lunas hijau, DP/terbit biru, menunggu DP kuning, batal merah).
+- Kartu rounded + shadow halus, tabel tanpa garis vertikal, topbar berisi tanggal hari ini + chip user.
+
+Perbaikan audit (hasil cross-check ulang):
+
+1. **Nopol unik vs soft delete** - unit yang dinonaktifkan otomatis diberi suffix nopol (`#del<id>`),
+   jadi nopol yang sama bisa dipakai unit baru tanpa bentrok constraint database.
+2. **Panel pratinjau invoice** di halaman detail (iframe kecil) + tombol cetak penuh.
+3. **Throttle login** - setelah 5x password salah, login dikunci 60 detik (cukup untuk pemakaian lokal).
+
+Seluruh alur diuji ulang end-to-end setelah perubahan (lihat tabel bagian 5) - semua lulus.
