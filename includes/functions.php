@@ -275,7 +275,9 @@ function ambilOrder(int $id): ?array
     $o = $s->get_result()->fetch_assoc();
     if (!$o) return null;
 
-    $s = $db->prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id');
+    $s = $db->prepare('SELECT oi.*, p.nama AS partner_nama FROM order_items oi
+                       LEFT JOIN partners p ON p.id = oi.partner_id
+                       WHERE oi.order_id = ? ORDER BY oi.id');
     $s->bind_param('i', $id);
     $s->execute();
     $o['items'] = $s->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -325,6 +327,16 @@ function cekBentrokUnit(int $unitId, string $mulai, string $finish, int $kecuali
     $s->bind_param('iiss', $unitId, $kecualiOrder, $mulai, $finish);
     $s->execute();
     return $s->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+/** Nama partner (Support By) per unit, unik, dipisah koma. */
+function partnerList(array $order): string
+{
+    $names = [];
+    foreach (($order['items'] ?? []) as $it) {
+        if (!empty($it['partner_nama'])) $names[$it['partner_nama']] = true;
+    }
+    return implode(', ', array_keys($names));
 }
 
 /* ============================== TEKS WHATSAPP ============================== */

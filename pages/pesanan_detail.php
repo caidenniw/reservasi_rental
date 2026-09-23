@@ -61,7 +61,7 @@ include __DIR__ . '/../includes/header.php';
                 <dt>Flight</dt><dd><?= e($order['flight'] ?: '-') ?></dd>
                 <dt>Jam</dt><dd><?= $order['jam_koordinasi'] ? 'Koordinasi dengan user' : e($order['jam'] ?: '-') ?></dd>
                 <dt>Tujuan / Rute</dt><dd><?= e($order['tujuan'] ?: '-') ?></dd>
-                <dt>Support By</dt><dd><?= e($order['partner_nama'] ?: '-') ?></dd>
+                <dt>Support By</dt><dd><?= e(partnerList($order) ?: '-') ?></dd>
                 <dt>Include</dt><dd><?= e(implode(' + ', array_map(fn($x) => $x['nama'], $order['includes'])) ?: '-') ?></dd>
                 <dt>Handle By</dt><dd><?= e($order['handle_by'] ?: '-') ?></dd>
                 <dt>Sumber Order</dt><dd><?= e($order['sumber'] ? labelSumber($order['sumber']) : '-') ?></dd>

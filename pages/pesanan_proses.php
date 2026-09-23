@@ -38,7 +38,8 @@ $arrHpDrv   = $_POST['item_hp_driver'] ?? [];
 $arrModal   = $_POST['item_harga_modal'] ?? [];
 $arrJual    = $_POST['item_harga_jual'] ?? [];
 $arrHari    = $_POST['item_jumlah_hari'] ?? [];
-$arrCatatan = $_POST['item_catatan'] ?? [];
+$arrCatatan   = $_POST['item_catatan'] ?? [];
+$arrPartnerId = $_POST['item_partner_id'] ?? [];
 
 $items = [];
 foreach ($arrNopol as $i => $nopolRaw) {
@@ -81,8 +82,14 @@ foreach ($arrNopol as $i => $nopolRaw) {
     $modal = angka($arrModal[$i] ?? 0);
     $jual  = angka($arrJual[$i] ?? 0);
 
+    if ($drvId === 0 && $namaDrv === '') {
+        $errors[] = 'Baris unit ' . ($i + 1) . ': driver wajib dipilih.';
+    }
+    $partnerItem = (int) ($arrPartnerId[$i] ?? 0);
+    $partnerItem = $partnerItem > 0 ? $partnerItem : null;
+
     $items[] = [
-        'unit_id' => $unitId, 'driver_id' => $drvId ?: null,
+        'unit_id' => $unitId, 'driver_id' => $drvId ?: null, 'partner_id' => $partnerItem,
         'nama_unit' => $nama, 'nopol' => $nopol,
         'nama_driver' => $namaDrv, 'hp_driver' => $hpDrv,
         'harga_modal' => $modal, 'harga_jual' => $jual, 'jumlah_hari' => $hari,
@@ -130,8 +137,7 @@ if ($cust) {
 }
 
 /* ---------------- simpan order ---------------- */
-$partnerId = (int) ($_POST['partner_id'] ?? 0);
-$partnerId = $partnerId > 0 ? $partnerId : null;
+$partnerId = null; /* Support By sekarang per unit (order_items.partner_id) */
 $jam           = trim((string) ($_POST['jam'] ?? ''));
 $jamKoordinasi = isset($_POST['jam_koordinasi']) ? 1 : 0;
 $standby       = trim((string) ($_POST['standby_point'] ?? ''));
@@ -202,14 +208,15 @@ try {
     }
 
     /* item */
-    $insItem = $db->prepare('INSERT INTO order_items (order_id, unit_id, driver_id, nama_unit, nopol, nama_driver, hp_driver,
+    $insItem = $db->prepare('INSERT INTO order_items (order_id, unit_id, driver_id, partner_id, nama_unit, nopol, nama_driver, hp_driver,
         harga_modal_per_hari, harga_jual_per_hari, jumlah_hari, subtotal_modal, subtotal_jual, catatan)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)');
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     foreach ($items as $it) {
         $drvId = $it['driver_id'] === null ? 0 : (int) $it['driver_id'];
         $drvId = $drvId > 0 ? $drvId : null;
-        $insItem->bind_param('iiissssiiiiis',
-            $orderId, $it['unit_id'], $drvId, $it['nama_unit'], $it['nopol'], $it['nama_driver'], $it['hp_driver'],
+        $pid   = $it['partner_id'];
+        $insItem->bind_param('iiiissssiiiiis',
+            $orderId, $it['unit_id'], $drvId, $pid, $it['nama_unit'], $it['nopol'], $it['nama_driver'], $it['hp_driver'],
             $it['harga_modal'], $it['harga_jual'], $it['jumlah_hari'], $it['subtotal_modal'], $it['subtotal_jual'], $it['catatan']);
         $insItem->execute();
     }

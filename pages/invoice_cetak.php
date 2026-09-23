@@ -296,7 +296,7 @@ $totalInv = (int) $inv['total'];
             <tr><td>Total modal unit</td><td class="num">Rp <?= rupiah($order['total_modal'], false) ?></td></tr>
             <tr><td>Biaya tambahan</td><td class="num">Rp <?= rupiah($order['total_tambahan'], false) ?></td></tr>
             <tr><td><b>Margin</b></td><td class="num"><b>Rp <?= rupiah($order['margin'], false) ?></b></td></tr>
-            <tr><td>Support By / partner</td><td class="num"><?= e($order['partner_nama'] ?: '-') ?></td></tr>
+            <tr><td>Support By / partner</td><td class="num"><?= e(partnerList($order) ?: '-') ?></td></tr>
             <tr><td>Handle By</td><td class="num"><?= e($order['handle_by'] ?: '-') ?></td></tr>
             <?php if ($order['catatan']): ?><tr><td>Catatan</td><td class="num"><?= e($order['catatan']) ?></td></tr><?php endif; ?>
         </table>

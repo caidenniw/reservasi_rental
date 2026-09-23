@@ -23,7 +23,7 @@ $o = $order ?: [];
 function fval(array $o, string $k, $d = '') { return $o[$k] ?? $d; }
 $items = $order['items'] ?? [];
 if (!$items) {
-    $items = [['unit_id' => '', 'nopol' => '', 'driver_id' => '', 'nama_driver' => '', 'harga_modal_per_hari' => '', 'harga_jual_per_hari' => '', 'jumlah_hari' => '', 'catatan' => '']];
+    $items = [['unit_id' => '', 'nopol' => '', 'driver_id' => '', 'nama_driver' => '', 'harga_modal_per_hari' => '', 'harga_jual_per_hari' => '', 'jumlah_hari' => '', 'catatan' => '', 'partner_id' => '']];
 }
 $includeTerpilih = [];
 foreach (($order['includes'] ?? []) as $inc) {
@@ -34,6 +34,99 @@ $biayaOrder = $order['biaya'] ?? [];
 $judulHalaman = $order ? 'Ubah Pesanan ' . $order['nomor_order'] : 'Input Pesanan Baru';
 $menuAktif = 'input';
 include __DIR__ . '/../includes/header.php';
+
+/* satu blok unit (dipakai untuk baris yang sudah ada) */
+function renderBlokUnit(array $it): void {
+    global $units, $drivers, $partners;
+?>
+                <div class="item-unit">
+                    <div class="item-head">
+                        <span class="unit-no">Unit</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-hapus-unit">Hapus unit</button>
+                    </div>
+                    <div class="form-grid">
+                        <div>
+                            <label class="form-label">Driver <span class="wajib">*</span></label>
+                            <select class="form-select pilih-driver" name="item_driver_id[]" required>
+                                <option value="">-- pilih driver --</option>
+                                <?php foreach ($drivers as $dv): ?>
+                                    <option value="<?= (int) $dv['id'] ?>" data-nama="<?= e($dv['nama']) ?>" data-hp="<?= e($dv['hp']) ?>"
+                                        <?= (int) ($it['driver_id'] ?? 0) === (int) $dv['id'] ? 'selected' : '' ?>>
+                                        <?= e($dv['nama']) ?><?= $dv['hp'] ? ' - ' . e($dv['hp']) : '' ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Nama Driver</label>
+                            <input type="text" class="form-control" name="item_nama_driver[]" value="<?= e($it['nama_driver'] ?? '') ?>">
+                            <div class="form-text">Terisi otomatis, bisa dikoreksi.</div>
+                        </div>
+                        <div>
+                            <label class="form-label">HP Driver</label>
+                            <input type="text" class="form-control" name="item_hp_driver[]" value="<?= e($it['hp_driver'] ?? '') ?>">
+                        </div>
+                        <div>
+                            <label class="form-label">Unit</label>
+                            <select class="form-select pilih-unit" name="item_unit_id[]">
+                                <option value="">-- pilih unit --</option>
+                                <?php foreach ($units as $un): ?>
+                                    <option value="<?= (int) $un['id'] ?>"
+                                            data-nopol="<?= e($un['nopol']) ?>"
+                                            data-modal="<?= (int) $un['harga_modal_default'] ?>"
+                                            data-jual="<?= (int) $un['harga_jual_default'] ?>"
+                                        <?= (int) ($it['unit_id'] ?? 0) === (int) $un['id'] ? 'selected' : '' ?>>
+                                        <?= e($un['nama_unit']) ?> - <?= e($un['nopol']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Nama Unit</label>
+                            <input type="text" class="form-control" name="item_nama_unit[]" value="<?= e($it['nama_unit'] ?? '') ?>">
+                            <div class="form-text">Terisi otomatis, bisa diketik manual.</div>
+                        </div>
+                        <div>
+                            <label class="form-label">Nomor Polisi</label>
+                            <input type="text" class="form-control mono" name="item_nopol[]" value="<?= e($it['nopol'] ?? '') ?>">
+                        </div>
+                        <div>
+                            <label class="form-label">Support By</label>
+                            <select class="form-select" name="item_partner_id[]">
+                                <option value="">-- tidak ada --</option>
+                                <?php foreach ($partners as $p): ?>
+                                    <option value="<?= (int) $p['id'] ?>" <?= (int) ($it['partner_id'] ?? 0) === (int) $p['id'] ? 'selected' : '' ?>><?= e($p['nama']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Harga Modal / Hari <span class="text-soft">(internal)</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" class="form-control" name="item_harga_modal[]" value="<?= $it['harga_modal_per_hari'] !== '' && $it['harga_modal_per_hari'] !== null ? number_format((float) $it['harga_modal_per_hari'], 0, ',', '.') : '' ?>">
+                            </div>
+                            <div class="form-text">Subtotal modal: <span class="sub-modal">Rp 0</span></div>
+                        </div>
+                        <div>
+                            <label class="form-label">Harga Jual / Hari</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" class="form-control" name="item_harga_jual[]" value="<?= $it['harga_jual_per_hari'] !== '' && $it['harga_jual_per_hari'] !== null ? number_format((float) $it['harga_jual_per_hari'], 0, ',', '.') : '' ?>">
+                            </div>
+                            <div class="form-text">Subtotal jual: <span class="sub-jual">Rp 0</span></div>
+                        </div>
+                        <div>
+                            <label class="form-label">Hari (per unit)</label>
+                            <input type="number" class="form-control" name="item_jumlah_hari[]" value="<?= e($it['jumlah_hari'] ?? '') ?>">
+                        </div>
+                        <div>
+                            <label class="form-label">Catatan Unit</label>
+                            <input type="text" class="form-control" name="item_catatan[]" value="<?= e($it['catatan'] ?? '') ?>">
+                        </div>
+                    </div>
+                </div>
+<?php
+}
 ?>
 <form method="post" action="<?= BASE_URL ?>/pages/pesanan_proses.php" id="formPesanan">
     <?= csrfField() ?>
@@ -63,10 +156,12 @@ include __DIR__ . '/../includes/header.php';
                 <datalist id="listKota">
                     <?php foreach ($kotaList as $kt): ?><option value="<?= e($kt['kota']) ?>"></option><?php endforeach; ?>
                 </datalist>
+                <div class="form-text">Contoh: "Gunung Sitoli (Nias)".</div>
             </div>
             <div>
                 <label class="form-label" for="tujuan">Tujuan / Rute</label>
                 <input type="text" class="form-control" id="tujuan" name="tujuan" value="<?= e(fval($o, 'tujuan')) ?>" placeholder="contoh: Bandara - Hotel - Kantor">
+                <div class="form-text">Opsional; dipakai untuk kolom Rute di invoice.</div>
             </div>
             <div>
                 <label class="form-label" for="tgl_mulai">Tanggal Mulai <span class="wajib">*</span></label>
@@ -131,15 +226,6 @@ include __DIR__ . '/../includes/header.php';
                 <label class="form-label" for="handle_by">Handle By</label>
                 <input type="text" class="form-control" id="handle_by" name="handle_by" value="<?= e(fval($o, 'handle_by', namaUser())) ?>">
             </div>
-            <div>
-                <label class="form-label" for="partner_id">Support By</label>
-                <select class="form-select" id="partner_id" name="partner_id">
-                    <option value="0">-- tidak ada --</option>
-                    <?php foreach ($partners as $p): ?>
-                        <option value="<?= (int) $p['id'] ?>" <?= (int) fval($o, 'partner_id', 0) === (int) $p['id'] ? 'selected' : '' ?>><?= e($p['nama']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
             <div class="full">
                 <label class="form-label" for="catatan">Catatan Internal</label>
                 <textarea class="form-control" id="catatan" name="catatan" rows="2"><?= e(fval($o, 'catatan')) ?></textarea>
@@ -152,82 +238,7 @@ include __DIR__ . '/../includes/header.php';
 
         <div id="wadahUnit">
             <?php foreach ($items as $it): ?>
-                <div class="item-unit">
-                    <div class="item-head">
-                        <span class="unit-no">Unit</span>
-                        <button type="button" class="btn btn-sm btn-outline-danger btn-hapus-unit">Hapus unit</button>
-                    </div>
-                    <div class="form-grid">
-                        <div>
-                            <label class="form-label">Unit</label>
-                            <select class="form-select pilih-unit" name="item_unit_id[]">
-                                <option value="0">-- pilih unit --</option>
-                                <?php foreach ($units as $un): ?>
-                                    <option value="<?= (int) $un['id'] ?>"
-                                            data-nopol="<?= e($un['nopol']) ?>"
-                                            data-modal="<?= (int) $un['harga_modal_default'] ?>"
-                                            data-jual="<?= (int) $un['harga_jual_default'] ?>"
-                                        <?= (int) ($it['unit_id'] ?? 0) === (int) $un['id'] ? 'selected' : '' ?>>
-                                        <?= e($un['nama_unit']) ?> - <?= e($un['nopol']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label">Nama Unit (bisa diketik manual)</label>
-                            <input type="text" class="form-control" name="item_nama_unit[]" value="<?= e($it['nama_unit'] ?? '') ?>">
-                        </div>
-                        <div>
-                            <label class="form-label">Nomor Polisi</label>
-                            <input type="text" class="form-control mono" name="item_nopol[]" value="<?= e($it['nopol'] ?? '') ?>">
-                        </div>
-                        <div>
-                            <label class="form-label">Driver</label>
-                            <select class="form-select pilih-driver" name="item_driver_id[]">
-                                <option value="0">-- pilih driver --</option>
-                                <?php foreach ($drivers as $dv): ?>
-                                    <option value="<?= (int) $dv['id'] ?>" data-nama="<?= e($dv['nama']) ?>" data-hp="<?= e($dv['hp']) ?>"
-                                        <?= (int) ($it['driver_id'] ?? 0) === (int) $dv['id'] ? 'selected' : '' ?>>
-                                        <?= e($dv['nama']) ?><?= $dv['hp'] ? ' - ' . e($dv['hp']) : '' ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label">Nama Driver (snapshot)</label>
-                            <input type="text" class="form-control" name="item_nama_driver[]" value="<?= e($it['nama_driver'] ?? '') ?>">
-                            <div class="form-text">Boleh dikosongkan; terisi otomatis dari pilihan driver.</div>
-                        </div>
-                        <div>
-                            <label class="form-label">HP Driver</label>
-                            <input type="text" class="form-control" name="item_hp_driver[]" value="<?= e($it['hp_driver'] ?? '') ?>">
-                        </div>
-                        <div>
-                            <label class="form-label">Harga Modal / Hari <span class="text-soft">(internal)</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="text" class="form-control" name="item_harga_modal[]" value="<?= $it['harga_modal_per_hari'] !== '' ? number_format((float) $it['harga_modal_per_hari'], 0, ',', '.') : '' ?>">
-                            </div>
-                            <div class="form-text">Subtotal modal: <span class="sub-modal">Rp 0</span></div>
-                        </div>
-                        <div>
-                            <label class="form-label">Harga Jual / Hari</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="text" class="form-control" name="item_harga_jual[]" value="<?= $it['harga_jual_per_hari'] !== '' ? number_format((float) $it['harga_jual_per_hari'], 0, ',', '.') : '' ?>">
-                            </div>
-                            <div class="form-text">Subtotal jual: <span class="sub-jual">Rp 0</span></div>
-                        </div>
-                        <div>
-                            <label class="form-label">Hari (per unit)</label>
-                            <input type="number" class="form-control" name="item_jumlah_hari[]" value="<?= e($it['jumlah_hari'] ?? '') ?>">
-                        </div>
-                        <div>
-                            <label class="form-label">Catatan Unit</label>
-                            <input type="text" class="form-control" name="item_catatan[]" value="<?= e($it['catatan'] ?? '') ?>">
-                        </div>
-                    </div>
-                </div>
+                <?php renderBlokUnit($it); ?>
             <?php endforeach; ?>
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="btnTambahUnit">+ Tambah unit</button>
@@ -302,27 +313,36 @@ include __DIR__ . '/../includes/header.php';
         </div>
         <div class="form-grid">
             <div>
-                <label class="form-label">Unit</label>
-                <select class="form-select pilih-unit" name="item_unit_id[]">
-                    <option value="0">-- pilih unit --</option>
-                    <?php foreach ($units as $un): ?>
-                        <option value="<?= (int) $un['id'] ?>" data-nopol="<?= e($un['nopol']) ?>" data-modal="<?= (int) $un['harga_modal_default'] ?>" data-jual="<?= (int) $un['harga_jual_default'] ?>"><?= e($un['nama_unit']) ?> - <?= e($un['nopol']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div><label class="form-label">Nama Unit (bisa diketik manual)</label><input type="text" class="form-control" name="item_nama_unit[]"></div>
-            <div><label class="form-label">Nomor Polisi</label><input type="text" class="form-control mono" name="item_nopol[]"></div>
-            <div>
-                <label class="form-label">Driver</label>
-                <select class="form-select pilih-driver" name="item_driver_id[]">
-                    <option value="0">-- pilih driver --</option>
+                <label class="form-label">Driver <span class="wajib">*</span></label>
+                <select class="form-select pilih-driver" name="item_driver_id[]" required>
+                    <option value="">-- pilih driver --</option>
                     <?php foreach ($drivers as $dv): ?>
                         <option value="<?= (int) $dv['id'] ?>" data-nama="<?= e($dv['nama']) ?>" data-hp="<?= e($dv['hp']) ?>"><?= e($dv['nama']) ?><?= $dv['hp'] ? ' - ' . e($dv['hp']) : '' ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div><label class="form-label">Nama Driver (snapshot)</label><input type="text" class="form-control" name="item_nama_driver[]"></div>
+            <div><label class="form-label">Nama Driver</label><input type="text" class="form-control" name="item_nama_driver[]"></div>
             <div><label class="form-label">HP Driver</label><input type="text" class="form-control" name="item_hp_driver[]"></div>
+            <div>
+                <label class="form-label">Unit</label>
+                <select class="form-select pilih-unit" name="item_unit_id[]">
+                    <option value="">-- pilih unit --</option>
+                    <?php foreach ($units as $un): ?>
+                        <option value="<?= (int) $un['id'] ?>" data-nopol="<?= e($un['nopol']) ?>" data-modal="<?= (int) $un['harga_modal_default'] ?>" data-jual="<?= (int) $un['harga_jual_default'] ?>"><?= e($un['nama_unit']) ?> - <?= e($un['nopol']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div><label class="form-label">Nama Unit</label><input type="text" class="form-control" name="item_nama_unit[]"></div>
+            <div><label class="form-label">Nomor Polisi</label><input type="text" class="form-control mono" name="item_nopol[]"></div>
+            <div>
+                <label class="form-label">Support By</label>
+                <select class="form-select" name="item_partner_id[]">
+                    <option value="">-- tidak ada --</option>
+                    <?php foreach ($partners as $p): ?>
+                        <option value="<?= (int) $p['id'] ?>"><?= e($p['nama']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <div>
                 <label class="form-label">Harga Modal / Hari <span class="text-soft">(internal)</span></label>
                 <div class="input-group"><span class="input-group-text">Rp</span><input type="text" class="form-control" name="item_harga_modal[]"></div>
