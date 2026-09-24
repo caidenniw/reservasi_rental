@@ -27,7 +27,11 @@
     --shadow:      0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
     --shadow-md:   0 4px 12px rgba(16,24,40,.08);
     --sidebar-w:   260px;
+    --ease-ui:      cubic-bezier(.2, .8, .2, 1);
+    --motion-fast:  120ms;
+    --motion-med:   180ms;
 }
+
 
 * { box-sizing: border-box; }
 body {
@@ -37,7 +41,9 @@ body {
     font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 14px;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
+
 
 .app {
     display: flex;
@@ -74,6 +80,15 @@ body {
 .brand-link {
     display: block;
     text-decoration: none;
+    border-radius: 10px;
+    transition: transform var(--motion-fast) var(--ease-ui), opacity var(--motion-fast) ease;
+}
+.brand-link:hover {
+    opacity: .92;
+    transform: translateY(-1px);
+}
+.brand-link:active {
+    transform: translateY(0);
 }
 
 .brand-logo {
@@ -99,11 +114,13 @@ body {
     cursor: pointer;
     padding: 4px 8px;
     border-radius: 6px;
+    transition: background var(--motion-fast) ease, color var(--motion-fast) ease, transform var(--motion-fast) var(--ease-ui);
 }
 .btn-sidebar-close:hover {
     background: rgba(255,255,255,0.1);
     color: #fff;
 }
+.btn-sidebar-close:active { transform: scale(.96); }
 
 .sidebar-scrollable {
     flex: 1;
@@ -151,9 +168,10 @@ body {
     text-decoration: none;
     font-size: 13.5px;
     font-weight: 500;
-    transition: all .16s ease;
+    transition: background var(--motion-med) ease, color var(--motion-med) ease, transform var(--motion-fast) var(--ease-ui), box-shadow var(--motion-med) ease;
     position: relative;
 }
+
 
 .nav-item .nav-icon {
     display: flex;
@@ -175,12 +193,21 @@ body {
 .nav-item:hover {
     background: var(--sidebar-hover);
     color: #ffffff;
+    transform: translateX(2px);
+}
+.nav-item:active {
+    transform: translateX(1px) scale(.995);
+}
+.nav-item:focus-visible {
+    outline: 2px solid rgba(255,255,255,.78);
+    outline-offset: 2px;
 }
 .nav-item:hover .nav-icon {
     opacity: 1;
 }
 
 .nav-item.active {
+    transform: none;
     background: var(--primary);
     color: #ffffff;
     font-weight: 600;
@@ -272,12 +299,17 @@ body {
     font-size: 12.5px;
     font-weight: 500;
     cursor: pointer;
-    transition: all .16s ease;
+    transition: background var(--motion-med) ease, border-color var(--motion-med) ease, color var(--motion-med) ease, transform var(--motion-fast) var(--ease-ui);
 }
 .btn-logout-sidebar:hover {
     background: rgba(220, 38, 38, 0.15);
     border-color: #dc2626;
     color: #ff8080;
+}
+.btn-logout-sidebar:active { transform: scale(.99); }
+.btn-logout-sidebar:focus-visible {
+    outline: 2px solid rgba(255,255,255,.78);
+    outline-offset: 2px;
 }
 
 /* =====================================================================
@@ -320,9 +352,15 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: background var(--motion-fast) ease, border-color var(--motion-fast) ease, transform var(--motion-fast) var(--ease-ui);
 }
 .btn-hamburger:hover {
     background: #f1f3f5;
+}
+.btn-hamburger:active { transform: scale(.97); }
+.btn-hamburger:focus-visible {
+    outline: 3px solid rgba(230,46,46,.22);
+    outline-offset: 2px;
 }
 
 .page-title {
@@ -366,6 +404,11 @@ body {
     font-size: 12.5px;
     font-weight: 500;
     background: #ffffff;
+    transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+.user-chip:hover {
+    border-color: #d7dce2;
+    box-shadow: var(--shadow-sm);
 }
 
 .user-chip .avatar {
@@ -419,8 +462,9 @@ body {
     padding: 18px 20px;
     box-shadow: var(--shadow);
     border-left: 4px solid var(--primary);
-    transition: transform .15s ease, box-shadow .15s ease;
+    transition: transform var(--motion-med) var(--ease-ui), box-shadow var(--motion-med) ease, border-color var(--motion-med) ease;
 }
+
 .stat:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-1px);
@@ -516,6 +560,9 @@ table.tabel td {
     border-bottom: 1px solid var(--line-subtle);
     vertical-align: top;
 }
+table.tabel tbody tr {
+    transition: background var(--motion-fast) ease;
+}
 table.tabel tr:hover td {
     background: #fafbfc;
 }
@@ -560,6 +607,10 @@ table.tabel .muted {
     border-color: #dfe3e8;
     border-radius: 8px;
     padding: .48rem .75rem;
+    transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, background-color var(--motion-fast) ease;
+}
+.form-control:hover, .form-select:hover {
+    border-color: #cfd6de;
 }
 .form-control:focus, .form-select:focus {
     border-color: var(--primary);
@@ -626,6 +677,11 @@ table.tabel .muted {
     border-radius: 12px;
     padding: 16px 18px;
     background: #fcfcfd;
+    transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+.item-unit:focus-within {
+    border-color: rgba(230,46,46,.28);
+    box-shadow: 0 0 0 3px rgba(230,46,46,.06);
 }
 .item-unit + .item-unit {
     margin-top: 14px;
@@ -689,7 +745,17 @@ table.tabel .muted {
 .btn {
     border-radius: 8px;
     font-weight: 500;
-    transition: all .15s ease;
+    transition: background-color var(--motion-med) ease, border-color var(--motion-med) ease, color var(--motion-med) ease, box-shadow var(--motion-med) ease, transform var(--motion-fast) var(--ease-ui);
+}
+.btn:hover {
+    transform: translateY(-1px);
+}
+.btn:active {
+    transform: translateY(0) scale(.99);
+}
+.btn:focus-visible, a:focus-visible, button:focus-visible {
+    outline: 3px solid rgba(230,46,46,.22);
+    outline-offset: 2px;
 }
 .btn-primary {
     background: var(--primary);
@@ -793,6 +859,53 @@ table.tabel .muted {
 }
 
 /* =====================================================================
+   MICRO-INTERACTIONS & ACCESSIBILITY
+   Gerakan dibuat kecil: feedback klik/hover, bukan animasi dekoratif.
+   ===================================================================== */
+html {
+    scroll-behavior: smooth;
+}
+
+.interactive-muted,
+.dropdown-item {
+    transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.dropdown-item:active {
+    background: var(--primary);
+}
+
+.badge-pill {
+    transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.alert {
+    animation: rnAlertIn 160ms var(--ease-ui);
+}
+
+@keyframes rnAlertIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .nav-item:hover,
+    .btn:hover,
+    .stat:hover,
+    .papan-item:hover,
+    .brand-link:hover {
+        transform: none !important;
+    }
+}
+
+/* =====================================================================
    RESPONSIVE DESIGN (Mobile & Tablet)
    ===================================================================== */
 /* Overlay Backdrop untuk Mobile Drawer */
@@ -804,7 +917,7 @@ table.tabel .muted {
     backdrop-filter: blur(2px);
     z-index: 1040;
     opacity: 0;
-    transition: opacity .25s ease;
+    transition: opacity var(--motion-med) ease;
 }
 
 @media (max-width: 991px) {
@@ -822,7 +935,7 @@ table.tabel .muted {
         height: 100vh;
         z-index: 1050;
         transform: translateX(-100%);
-        transition: transform .26s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform var(--motion-med) var(--ease-ui);
         box-shadow: none;
     }
 
