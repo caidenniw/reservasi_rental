@@ -107,19 +107,20 @@ $sidebarSections = [
 
         <div class="sidebar-scrollable">
             <nav class="sidebar-nav">
-                <?php foreach ($sidebarSections as $sectionTitle => $items): ?>
+                <?php foreach ($sidebarSections as $sectionTitle => $navItems): ?>
                     <div class="sidebar-section-title"><?= e($sectionTitle) ?></div>
-                    <?php foreach ($items as $m): ?>
-                        <?php $isActive = ($menuAktif === $m['key']); ?>
-                        <a href="<?= BASE_URL . $m['url'] ?>" class="nav-item <?= $isActive ? 'active' : '' ?>">
-                            <span class="nav-icon"><?= $m['icon'] ?></span>
-                            <span class="nav-label"><?= e($m['label']) ?></span>
+                    <?php foreach ($navItems as $nav): ?>
+                        <?php $isActive = ($menuAktif === $nav['key']); ?>
+                        <a href="<?= BASE_URL . $nav['url'] ?>" class="nav-item <?= $isActive ? 'active' : '' ?>">
+                            <span class="nav-icon"><?= $nav['icon'] ?></span>
+                            <span class="nav-label"><?= e($nav['label']) ?></span>
                             <?php if ($isActive): ?>
                                 <span class="nav-dot"></span>
                             <?php endif; ?>
                         </a>
                     <?php endforeach; ?>
                 <?php endforeach; ?>
+                <?php unset($navItems, $nav, $isActive); ?>
             </nav>
 
             <div class="sidebar-foot">

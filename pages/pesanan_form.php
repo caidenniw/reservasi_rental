@@ -44,6 +44,10 @@ include __DIR__ . '/../includes/header.php';
 /* satu blok unit (dipakai untuk baris yang sudah ada) */
 function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
     global $units, $drivers, $partners;
+
+    // Guard agar form tetap bersih kalau array item belum lengkap / berasal dari versi lama.
+    $hargaModal = $it['harga_modal_per_hari'] ?? '';
+    $hargaJual  = $it['harga_jual_per_hari'] ?? '';
 ?>
                 <div class="item-unit">
                     <div class="item-head">
@@ -109,7 +113,7 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
                             <label class="form-label">Harga Modal / Hari <span class="text-soft">(internal)</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
-                                <input type="text" class="form-control" name="item_harga_modal[]" value="<?= $it['harga_modal_per_hari'] !== '' && $it['harga_modal_per_hari'] !== null ? number_format((float) $it['harga_modal_per_hari'], 0, ',', '.') : '' ?>">
+                                <input type="text" class="form-control" name="item_harga_modal[]" value="<?= $hargaModal !== '' && $hargaModal !== null ? number_format((float) $hargaModal, 0, ',', '.') : '' ?>">
                             </div>
                             <div class="form-text">Subtotal modal: <span class="sub-modal">Rp 0</span></div>
                         </div>
@@ -117,7 +121,7 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
                             <label class="form-label">Harga Jual / Hari</label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
-                                <input type="text" class="form-control" name="item_harga_jual[]" value="<?= $it['harga_jual_per_hari'] !== '' && $it['harga_jual_per_hari'] !== null ? number_format((float) $it['harga_jual_per_hari'], 0, ',', '.') : '' ?>">
+                                <input type="text" class="form-control" name="item_harga_jual[]" value="<?= $hargaJual !== '' && $hargaJual !== null ? number_format((float) $hargaJual, 0, ',', '.') : '' ?>">
                             </div>
                             <div class="form-text">Subtotal jual: <span class="sub-jual">Rp 0</span></div>
                         </div>
