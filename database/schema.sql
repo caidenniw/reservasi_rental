@@ -125,7 +125,7 @@ CREATE TABLE orders (
   id                 INT AUTO_INCREMENT PRIMARY KEY,
   nomor_order        VARCHAR(30) NOT NULL UNIQUE,
   customer_id        INT NULL,
-  tipe_pelanggan     ENUM('retail','corporate','RO') NOT NULL DEFAULT 'retail',
+  tipe_pelanggan     ENUM('retail','corporate','RO','RTR') NOT NULL DEFAULT 'retail', -- retail=perorangan, corporate=CO/Corp perusahaan end-user, RO=Repeat Order, RTR=Rent to Rent (biro lain sewa unit kita)
   wilayah_pelayanan  ENUM('dalam_kota','luar_kota') NOT NULL DEFAULT 'dalam_kota',
   kota               VARCHAR(100) NOT NULL,
   tgl_mulai          DATE NOT NULL,

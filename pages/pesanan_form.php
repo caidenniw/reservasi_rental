@@ -159,7 +159,7 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
             <div>
                 <label class="form-label" for="tipe_pelanggan">Tipe Pelanggan <span class="wajib">*</span></label>
                 <select class="form-select" id="tipe_pelanggan" name="tipe_pelanggan">
-                    <?php foreach (['retail' => 'Retail (Perorangan)', 'corporate' => 'Perusahaan / Instansi', 'RO' => 'Repeat Order'] as $k => $l): ?>
+                    <?php foreach (['retail' => 'Retail (Perorangan)', 'corporate' => 'Perusahaan / Instansi', 'RO' => 'Repeat Order', 'RTR' => 'RTR (Rent to Rent)'] as $k => $l): ?>
                         <option value="<?= $k ?>" <?= fval($o, 'tipe_pelanggan', 'retail') === $k ? 'selected' : '' ?>><?= $l ?></option>
                     <?php endforeach; ?>
                 </select>
@@ -261,7 +261,7 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
                 <datalist id="listAsalUser">
                     <option value="RTR"></option><option value="Corp"></option><option value="RO"></option><option value="Apkasi"></option><option value="IG"></option><option value="Web"></option><option value="Bu Tika"></option>
                 </datalist>
-                <div class="form-text">Isi kalau mau samakan sheet lama. Jika diisi, Tipe Pelanggan & Sumber otomatis mengikuti. RTR sementara → corporate. Tanya reservasi untuk pastinya.</div>
+                <div class="form-text">Isi kalau mau samakan sheet lama. Jika diisi, Tipe Pelanggan & Sumber otomatis mengikuti. RTR = Rent to Rent (biro lain sewa unit kita).</div>
             </div>
             <div>
                 <label class="form-label" for="handle_by">Handle By</label>
