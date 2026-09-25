@@ -23,7 +23,7 @@ $o = $order ?: [];
 function fval(array $o, string $k, $d = '') { return $o[$k] ?? $d; }
 $items = $order['items'] ?? [];
 if (!$items) {
-    $items = [['unit_id' => '', 'nopol' => '', 'driver_id' => '', 'nama_driver' => '', 'harga_modal_per_hari' => '', 'harga_jual_per_hari' => '', 'jumlah_hari' => '', 'catatan' => '', 'partner_id' => '']];
+    $items = [['unit_id' => '', 'nopol' => '', 'upgrade' => '', 'driver_id' => '', 'nama_driver' => '', 'harga_modal_per_hari' => '', 'harga_jual_per_hari' => '', 'jumlah_hari' => '', 'catatan' => '', 'partner_id' => '']];
 }
 $includeTerpilih = [];
 foreach (($order['includes'] ?? []) as $inc) {
@@ -99,6 +99,10 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
                         <div>
                             <label class="form-label">Nomor Polisi</label>
                             <input type="text" class="form-control mono" name="item_nopol[]" value="<?= e($it['nopol'] ?? '') ?>">
+                        </div>
+                        <div>
+                            <label class="form-label">Upgrade</label>
+                            <input type="text" class="form-control" name="item_upgrade[]" list="listUpgrade" value="<?= e($it['upgrade'] ?? '') ?>" placeholder="mis: Up Reborn">
                         </div>
                         <div>
                             <label class="form-label">Support By</label>
@@ -240,6 +244,26 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
                 <input type="text" class="form-control" id="hp_pic" name="hp_pic" value="<?= e(fval($o, 'hp_pic')) ?>" placeholder="08xx / +62xx">
             </div>
             <div>
+                <label class="form-label" for="data_tamu">Data Tamu <span class="text-soft">(internal)</span></label>
+                <input type="text" class="form-control" id="data_tamu" name="data_tamu" value="<?= e(fval($o, 'data_tamu')) ?>" placeholder="mis: Imigrasi / Lapas / Ibu Triana">
+                <div class="form-text">Pemesan vs tamu: tidak cetak di invoice, hanya internal.</div>
+            </div>
+            <div>
+                <label class="form-label" for="keterangan">Keterangan</label>
+                <input type="text" class="form-control" id="keterangan" name="keterangan" list="listKeterangan" value="<?= e(fval($o, 'keterangan')) ?>" placeholder="mis: Ketua Apkasi">
+                <datalist id="listKeterangan">
+                    <option value="Ketua Apkasi"></option><option value="Putri Otonomi"></option><option value="RTR"></option><option value="Corp"></option>
+                </datalist>
+            </div>
+            <div>
+                <label class="form-label" for="asal_user_raw">Asal User (arsip Excel)</label>
+                <input type="text" class="form-control" id="asal_user_raw" name="asal_user_raw" list="listAsalUser" value="<?= e(fval($o, 'asal_user_raw')) ?>" placeholder="kosongkan jika input baru">
+                <datalist id="listAsalUser">
+                    <option value="RTR"></option><option value="Corp"></option><option value="RO"></option><option value="Apkasi"></option><option value="IG"></option><option value="Web"></option><option value="Bu Tika"></option>
+                </datalist>
+                <div class="form-text">Isi kalau mau samakan sheet lama. Jika diisi, Tipe Pelanggan & Sumber otomatis mengikuti. RTR sementara → corporate. Tanya reservasi untuk pastinya.</div>
+            </div>
+            <div>
                 <label class="form-label" for="handle_by">Handle By</label>
                 <input type="text" class="form-control" id="handle_by" name="handle_by" value="<?= e(fval($o, 'handle_by', namaUser())) ?>">
             </div>
@@ -296,12 +320,27 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
         </div>
 
         <div class="ringkas mt-4">
+            <div class="row g-2 align-items-end mb-2">
+                <div class="col-md-5">
+                    <label class="form-label" for="panjar">Panjar / DP Awal (opsional)</label>
+                    <div class="input-group input-group-sm"><span class="input-group-text">Rp</span><input type="text" class="form-control" id="panjar" name="panjar" value="<?= fval($o, 'panjar') !== '' && fval($o, 'panjar') !== null && (int)fval($o,'panjar')>0 ? number_format((float)fval($o,'panjar'),0,',','.') : '' ?>" placeholder="0"></div>
+                    <div class="form-text">Kalau customer sudah transfer sebelum invoice terbit. Nanti otomatis jadi pembayaran DP di invoice — tidak perlu input dua kali. Kosongkan jika belum ada.</div>
+                </div>
+                <div class="col-md-7 text-end">
+                    <div class="form-text">Sisa setelah panjar: <b id="rkSisa">Rp 0</b></div>
+                </div>
+            </div>
             <div class="ringkas-row"><span>Subtotal modal (internal)</span><span id="rkModal">Rp 0</span></div>
             <div class="ringkas-row"><span>Subtotal jual</span><span id="rkJual">Rp 0</span></div>
             <div class="ringkas-row"><span>Biaya tambahan</span><span id="rkTambahan">Rp 0</span></div>
             <div class="ringkas-row total"><span>Total Tagihan Customer</span><span id="rkTotal">Rp 0</span></div>
+            <div class="ringkas-row"><span>Panjar</span><span id="rkPanjar">Rp 0</span></div>
+            <div class="ringkas-row total"><span>Sisa Tagihan</span><span id="rkSisa2">Rp 0</span></div>
             <div class="ringkas-row margin"><span>Margin (internal)</span><span id="rkMargin">Rp 0</span></div>
         </div>
+        <datalist id="listUpgrade">
+            <?php foreach (daftarUpgrade() as $up): ?><option value="<?= e($up) ?>"></option><?php endforeach; ?>
+        </datalist>
     </div>
 
     <div class="card-box">
@@ -352,6 +391,7 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
             </div>
             <div><label class="form-label">Nama Unit</label><input type="text" class="form-control" name="item_nama_unit[]"></div>
             <div><label class="form-label">Nomor Polisi</label><input type="text" class="form-control mono" name="item_nopol[]"></div>
+            <div><label class="form-label">Upgrade</label><input type="text" class="form-control" name="item_upgrade[]" list="listUpgrade" placeholder="mis: Up Reborn"></div>
             <div>
                 <label class="form-label">Support By</label>
                 <select class="form-select" name="item_partner_id[]">

@@ -52,10 +52,19 @@ function rnSiapkanFormPesanan() {
         });
 
         var grand = totalJual + tambahan;
+        var panjarEl = document.getElementById('panjar');
+        var panjar = panjarEl ? rnAngka(panjarEl.value) : 0;
+        var sisa = Math.max(0, grand - panjar);
         document.getElementById('rkJual').textContent = rnFormatRupiah(totalJual);
         document.getElementById('rkModal').textContent = rnFormatRupiah(totalModal);
         document.getElementById('rkTambahan').textContent = rnFormatRupiah(tambahan);
         document.getElementById('rkTotal').textContent = rnFormatRupiah(grand);
+        var rkPanjar = document.getElementById('rkPanjar');
+        if (rkPanjar) rkPanjar.textContent = rnFormatRupiah(panjar);
+        var rkSisa = document.getElementById('rkSisa');
+        if (rkSisa) rkSisa.textContent = rnFormatRupiah(sisa);
+        var rkSisa2 = document.getElementById('rkSisa2');
+        if (rkSisa2) rkSisa2.textContent = rnFormatRupiah(sisa);
         document.getElementById('rkMargin').textContent = rnFormatRupiah(grand - totalModal);
     }
 

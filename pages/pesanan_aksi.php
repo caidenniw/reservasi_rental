@@ -175,11 +175,35 @@ switch ($aksi) {
         }
         $invBaru = terbitkanInvoice($order);
         $nomor = $invBaru['nomor'];
+        // Panjar otomatis jadi DP — best practice: input sekali di form, tidak input lagi di halaman ini
+        $panjar = (int) ($order['panjar'] ?? 0);
+        if ($panjar > 0) {
+            $panjar = min($panjar, (int) $order['grand_total']);
+            $invIdBaru = (int) $invBaru['id'];
+            // hindari duplikat jika karena satu dan lain hal sudah ada DP panjar
+            $cek = $db->prepare('SELECT COUNT(*) c FROM payments WHERE invoice_id = ? AND catatan = "Panjar awal dari form pesanan"');
+            $cek->bind_param('i', $invIdBaru);
+            $cek->execute();
+            $sudahAda = (int) ($cek->get_result()->fetch_assoc()['c'] ?? 0);
+            if ($sudahAda === 0) {
+                $tglBayar = date('Y-m-d');
+                $tipePanjar = 'dp';
+                $metodePanjar = 'transfer';
+                $bankPanjar = '';
+                $buktiPanjar = '';
+                $catPanjar = 'Panjar awal dari form pesanan';
+                $olehPanjar = idUser();
+                $insPanjar = $db->prepare('INSERT INTO payments (invoice_id, tanggal_bayar, tipe, nominal, metode, bank, bukti_path, catatan, created_by) VALUES (?,?,?,?,?,?,?,?,?)');
+                $insPanjar->bind_param('ississssi', $invIdBaru, $tglBayar, $tipePanjar, $panjar, $metodePanjar, $bankPanjar, $buktiPanjar, $catPanjar, $olehPanjar);
+                $insPanjar->execute();
+                perbaruiInvoice($invIdBaru, $id);
+            }
+        }
         $st = $db->prepare('UPDATE orders SET status = "invoiced" WHERE id = ? AND status NOT IN ("paid","reported")');
         $st->bind_param('i', $id);
         $st->execute();
-        catatStatus($id, $order['status'], 'invoiced', 'Invoice diterbitkan: ' . $nomor);
-        setFlash('success', 'Invoice ' . $nomor . ' diterbitkan. Nomor invoice terkunci - perubahan berikutnya lewat Revisi.');
+        catatStatus($id, $order['status'], 'invoiced', 'Invoice diterbitkan: ' . $nomor . ($panjar > 0 ? ' (panjar Rp ' . number_format($panjar, 0, ',', '.') . ' otomatis jadi DP)' : ''));
+        setFlash('success', 'Invoice ' . $nomor . ' diterbitkan.' . ($panjar > 0 ? ' Panjar Rp ' . number_format($panjar, 0, ',', '.') . ' otomatis tercatat sebagai DP.' : '') . ' Nomor terkunci - perubahan lewat Revisi.');
         break;
 
     case 'revisi':

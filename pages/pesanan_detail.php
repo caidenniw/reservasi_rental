@@ -70,6 +70,8 @@ include __DIR__ . '/../includes/header.php';
                 <dt>Tujuan / Rute</dt><dd><?= e($order['tujuan'] ?: '-') ?></dd>
                 <dt>Support By</dt><dd><?= e(partnerList($order) ?: '-') ?></dd>
                 <dt>Include</dt><dd><?= e(implode(' + ', array_map(fn($x) => $x['nama'], $order['includes'])) ?: '-') ?></dd>
+                <dt>Keterangan</dt><dd><?= e($order['keterangan'] ?: '-') ?></dd>
+                <dt>Asal User (arsip)</dt><dd><?= e($order['asal_user_raw'] ?: '-') ?><?php if (!empty($order['asal_user_raw'])): ?> <span class="text-soft">&rarr; <?= e(labelTipePelanggan($order['tipe_pelanggan'])) ?> / <?= e(labelSumber($order['sumber'])) ?></span><?php endif; ?></dd>
                 <dt>Handle By</dt><dd><?= e($order['handle_by'] ?: '-') ?></dd>
                 <dt>Sumber Order</dt><dd><?= e($order['sumber'] ? labelSumber($order['sumber']) : '-') ?></dd>
                 <dt>Catatan</dt><dd><?= $order['catatan'] ? nl2br(e($order['catatan'])) : '-' ?></dd>
@@ -81,6 +83,7 @@ include __DIR__ . '/../includes/header.php';
             <dl class="dl-2">
                 <dt>Nama Pesanan</dt><dd><?= e($order['nama_pesanan']) ?></dd>
                 <dt>PIC</dt><dd><?= e($order['nama_pic'] ?: '-') ?></dd>
+                <dt>Data Tamu <span class="text-soft">(internal)</span></dt><dd><?= e($order['data_tamu'] ?: '-') ?></dd>
                 <dt>HP / WA PIC</dt>
                 <dd>
                     <?php if ($order['hp_pic']): ?>
@@ -99,9 +102,9 @@ include __DIR__ . '/../includes/header.php';
                     <tbody>
                     <?php foreach ($order['items'] as $it): ?>
                         <tr>
-                            <td><?= e($it['nama_unit']) ?></td>
+                            <td><?= e($it['nama_unit']) ?><?php if (!empty($it['upgrade'])): ?><div class="text-soft" style="font-size:12px">Upgrade: <?= e($it['upgrade']) ?></div><?php endif; ?></td>
                             <td class="mono"><?= e($it['nopol']) ?></td>
-                            <td><?= e($it['nama_driver'] ?: '-') ?><?php if ($it['hp_driver']): ?><div class="muted"><?= e($it['hp_driver']) ?></div><?php endif; ?></td>
+                            <td><?= e($it['nama_driver'] ?: '-') ?><?php if ($it['hp_driver']): ?><div class="muted"><?= e($it['hp_driver']) ?></div><?php endif; ?><?php if (!empty($it['partner_nama'])): ?><div class="text-soft" style="font-size:12px">Support: <?= e($it['partner_nama']) ?></div><?php endif; ?></td>
                             <td class="num"><?= (int) $it['jumlah_hari'] ?></td>
                             <td class="num"><?= rupiah($it['harga_modal_per_hari'], false) ?></td>
                             <td class="num"><?= rupiah($it['harga_jual_per_hari'], false) ?></td>
@@ -132,8 +135,15 @@ include __DIR__ . '/../includes/header.php';
                 <div class="ringkas-row"><span>Subtotal jual</span><span><?= rupiah($order['total_jual']) ?></span></div>
                 <div class="ringkas-row"><span>Biaya tambahan</span><span><?= rupiah($order['total_tambahan']) ?></span></div>
                 <div class="ringkas-row total"><span>Total Tagihan</span><span><?= rupiah($order['grand_total']) ?></span></div>
+                <?php if ((int) ($order['panjar'] ?? 0) > 0): ?>
+                    <div class="ringkas-row"><span>Panjar (DP awal)</span><span><?= rupiah($order['panjar']) ?></span></div>
+                    <div class="ringkas-row total"><span>Sisa Tagihan</span><span><?= rupiah(max(0, (int) $order['grand_total'] - (int) $order['panjar'])) ?></span></div>
+                <?php endif; ?>
                 <div class="ringkas-row margin"><span>Margin (internal)</span><span><?= rupiah($order['margin']) ?></span></div>
             </div>
+            <?php if ((int) ($order['panjar'] ?? 0) > 0): ?>
+                <div class="form-text mt-2">Panjar dari form otomatis jadi DP saat Terbitkan Invoice — tidak perlu input lagi di bawah.</div>
+            <?php endif; ?>
         </div>
 
         <div class="card-box">

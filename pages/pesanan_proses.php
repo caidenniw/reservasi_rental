@@ -14,6 +14,10 @@ $aksi = (string) ($_POST['aksi'] ?? 'simpan');
 /* ---------------- ambil input ---------------- */
 $nama_pesanan = trim((string) ($_POST['nama_pesanan'] ?? ''));
 $kota         = trim((string) ($_POST['kota'] ?? ''));
+$data_tamu    = trim((string) ($_POST['data_tamu'] ?? ''));
+$keterangan   = trim((string) ($_POST['keterangan'] ?? ''));
+$asal_user_raw = trim((string) ($_POST['asal_user_raw'] ?? ''));
+$panjar       = angka($_POST['panjar'] ?? 0);
 $tgl_mulai    = trim((string) ($_POST['tgl_mulai'] ?? ''));
 $tgl_finish   = trim((string) ($_POST['tgl_finish'] ?? ''));
 $jumlah_hari  = hitungHari($tgl_mulai, $tgl_finish);
@@ -40,6 +44,7 @@ $arrJual    = $_POST['item_harga_jual'] ?? [];
 $arrHari    = $_POST['item_jumlah_hari'] ?? [];
 $arrCatatan   = $_POST['item_catatan'] ?? [];
 $arrPartnerId = $_POST['item_partner_id'] ?? [];
+$arrUpgrade   = $_POST['item_upgrade'] ?? [];
 
 $items = [];
 foreach ($arrNopol as $i => $nopolRaw) {
@@ -70,9 +75,9 @@ foreach ($arrNopol as $i => $nopolRaw) {
             if ($hpDrv === '')   $hpDrv   = normalisasiHp($d['hp']);
         }
     }
-    if ($hpDrv !== '') $hpDrv = normalisasiHp($hpDrv); // rapikan manual ke +62
+    if ($hpDrv !== '') $hpDrv = normalisasiHp($hpDrv);
     if ($nama === '' && $nopol === '' && $unitId === 0) {
-        continue; // baris kosong
+        continue;
     }
     if ($nama === '' || $nopol === '') {
         $errors[] = 'Baris unit ' . ($i + 1) . ': nama unit dan nomor polisi wajib lengkap.';
@@ -88,9 +93,10 @@ foreach ($arrNopol as $i => $nopolRaw) {
     }
     $partnerItem = (int) ($arrPartnerId[$i] ?? 0);
     $partnerItem = $partnerItem > 0 ? $partnerItem : null;
+    $upgrade = trim((string) ($arrUpgrade[$i] ?? ''));
 
     $items[] = [
-        'unit_id' => $unitId, 'driver_id' => $drvId ?: null, 'partner_id' => $partnerItem,
+        'unit_id' => $unitId, 'driver_id' => $drvId ?: null, 'partner_id' => $partnerItem, 'upgrade' => $upgrade,
         'nama_unit' => $nama, 'nopol' => $nopol,
         'nama_driver' => $namaDrv, 'hp_driver' => $hpDrv,
         'harga_modal' => $modal, 'harga_jual' => $jual, 'jumlah_hari' => $hari,
@@ -122,6 +128,14 @@ if ($errors) {
 $namaPic = trim((string) ($_POST['nama_pic'] ?? ''));
 $hpPic   = normalisasiHp((string) ($_POST['hp_pic'] ?? ''));
 $sumber  = (string) ($_POST['sumber'] ?? 'wa');
+// Asal User (arsip Excel) jadi sumber kebenaran jika diisi — biar mapping RTR/Corp/RO tidak hilang
+$tipePelangganForm = (string) ($_POST['tipe_pelanggan'] ?? 'retail');
+$wilayahForm       = (string) ($_POST['wilayah_pelayanan'] ?? 'dalam_kota');
+if ($asal_user_raw !== '') {
+    $mapTmp = mapAsalUser($asal_user_raw);
+    $tipePelangganForm = $mapTmp['tipe'];
+    $sumber = $mapTmp['sumber'];
+}
 
 $st = $db->prepare('SELECT id FROM customers WHERE deleted_at IS NULL AND LOWER(nama_pesanan) = LOWER(?) LIMIT 1');
 $st->bind_param('s', $nama_pesanan);
@@ -145,8 +159,8 @@ $standby       = trim((string) ($_POST['standby_point'] ?? ''));
 $flight        = trim((string) ($_POST['flight'] ?? ''));
 $tujuan        = trim((string) ($_POST['tujuan'] ?? ''));
 $handleBy      = trim((string) ($_POST['handle_by'] ?? namaUser()));
-$tipePelanggan = (string) ($_POST['tipe_pelanggan'] ?? 'retail');
-$wilayah       = (string) ($_POST['wilayah_pelayanan'] ?? 'dalam_kota');
+$tipePelanggan = $tipePelangganForm;
+$wilayah       = $wilayahForm;
 $catatanOrder  = trim((string) ($_POST['catatan'] ?? ''));
 $statusLama    = null;
 
@@ -167,8 +181,10 @@ try {
             ['jam_koordinasi', $jamKoordinasi, 'i'], ['standby_point', $standby, 's'],
             ['flight', $flight, 's'], ['tujuan', $tujuan, 's'],
             ['nama_pesanan', $nama_pesanan, 's'], ['nama_pic', $namaPic, 's'],
-            ['hp_pic', $hpPic, 's'], ['sumber', $sumber, 's'],
+            ['hp_pic', $hpPic, 's'], ['data_tamu', $data_tamu, 's'], ['sumber', $sumber, 's'],
+            ['asal_user_raw', $asal_user_raw, 's'],
             ['handle_by', $handleBy, 's'], ['partner_id', $partnerId, 'i'],
+            ['panjar', $panjar, 'i'], ['keterangan', $keterangan, 's'],
             ['status', $status, 's'], ['catatan', $catatanOrder, 's'],
         ];
         $set = []; $types = ''; $vals = [];
@@ -196,9 +212,11 @@ try {
             ['jam_koordinasi', $jamKoordinasi, 'i'], ['standby_point', $standby, 's'],
             ['flight', $flight, 's'], ['tujuan', $tujuan, 's'],
             ['nama_pesanan', $nama_pesanan, 's'], ['nama_pic', $namaPic, 's'],
-            ['hp_pic', $hpPic, 's'], ['sumber', $sumber, 's'], ['handle_by', $handleBy, 's'],
-            ['partner_id', $partnerId, 'i'], ['status', $status, 's'],
-            ['catatan', $catatanOrder, 's'], ['created_by', $createdBy, 'i'],
+            ['hp_pic', $hpPic, 's'], ['data_tamu', $data_tamu, 's'], ['sumber', $sumber, 's'],
+            ['asal_user_raw', $asal_user_raw, 's'],
+            ['handle_by', $handleBy, 's'],
+            ['partner_id', $partnerId, 'i'], ['panjar', $panjar, 'i'], ['keterangan', $keterangan, 's'],
+            ['status', $status, 's'], ['catatan', $catatanOrder, 's'], ['created_by', $createdBy, 'i'],
         ];
         $kol = []; $types = ''; $vals = [];
         foreach ($fields as $fl) { $kol[] = '`' . $fl[0] . '`'; $types .= $fl[2]; $vals[] = $fl[1]; }
@@ -209,15 +227,15 @@ try {
     }
 
     /* item */
-    $insItem = $db->prepare('INSERT INTO order_items (order_id, unit_id, driver_id, partner_id, nama_unit, nopol, nama_driver, hp_driver,
+    $insItem = $db->prepare('INSERT INTO order_items (order_id, unit_id, driver_id, partner_id, nama_unit, nopol, upgrade, nama_driver, hp_driver,
         harga_modal_per_hari, harga_jual_per_hari, jumlah_hari, subtotal_modal, subtotal_jual, catatan)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     foreach ($items as $it) {
         $drvId = $it['driver_id'] === null ? 0 : (int) $it['driver_id'];
         $drvId = $drvId > 0 ? $drvId : null;
         $pid   = $it['partner_id'];
-        $insItem->bind_param('iiiissssiiiiis',
-            $orderId, $it['unit_id'], $drvId, $pid, $it['nama_unit'], $it['nopol'], $it['nama_driver'], $it['hp_driver'],
+        $insItem->bind_param('iiiisssssiiiiis',
+            $orderId, $it['unit_id'], $drvId, $pid, $it['nama_unit'], $it['nopol'], $it['upgrade'], $it['nama_driver'], $it['hp_driver'],
             $it['harga_modal'], $it['harga_jual'], $it['jumlah_hari'], $it['subtotal_modal'], $it['subtotal_jual'], $it['catatan']);
         $insItem->execute();
     }
