@@ -399,11 +399,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi_import'])) {
 
                     $driverIdBind = $driverId;
                     $partnerIdBind = $partnerId;
+                    $hpDriverKosong = '';
                     $subModal = $hargaModalPerHari * $hari;
                     $subJual  = $hargaJualPerHari * $hari;
                     $catUnit = '';
                     $insItem = $db->prepare('INSERT INTO order_items (order_id,unit_id,driver_id,partner_id,nama_unit,nopol,upgrade,nama_driver,hp_driver,harga_modal_per_hari,harga_jual_per_hari,jumlah_hari,subtotal_modal,subtotal_jual,catatan) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-                    $insItem->bind_param('iiiisssssiiiiis', $orderId,$unitId,$driverIdBind,$partnerIdBind,$unitNama,$nopolRaw,$upgrade,$driverNama,'',$hargaModalPerHari,$hargaJualPerHari,$hari,$subModal,$subJual,$catUnit);
+                    $insItem->bind_param('iiiisssssiiiiis', $orderId,$unitId,$driverIdBind,$partnerIdBind,$unitNama,$nopolRaw,$upgrade,$driverNama,$hpDriverKosong,$hargaModalPerHari,$hargaJualPerHari,$hari,$subModal,$subJual,$catUnit);
                     $insItem->execute();
 
                     // include
@@ -425,9 +426,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi_import'])) {
                                 $insInc->bind_param('iisi',$orderId,$iid,$nm,$bi);
                                 $insInc->execute();
                             } else {
-                                $iid=null; $bi=0;
+                                $iidNull=null; $bi=0;
                                 $insInc=$db->prepare('INSERT INTO order_includes (order_id,include_id,nama,biaya) VALUES (?,?,?,?)');
-                                $insInc->bind_param('iisi',$orderId,$iid,$pinc,$bi);
+                                $insInc->bind_param('iisi',$orderId,$iidNull,$pinc,$bi);
                                 $insInc->execute();
                             }
                         }
