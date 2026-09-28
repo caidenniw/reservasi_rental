@@ -925,25 +925,60 @@ html {
    ===================================================================== */
 .rn-modal {
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 14px;
     box-shadow: var(--shadow-md);
 }
+.rn-modal-body {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 20px 20px 16px;
+}
+.rn-modal-ikon {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-subtle);
+    color: var(--primary);
+}
+.rn-modal-ikon[data-jenis="normal"] {
+    background: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+.rn-modal-teks {
+    flex: 1;
+    min-width: 0;
+}
 .rn-modal-judul {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--ink);
     margin-bottom: 6px;
 }
 .rn-modal-pesan {
-    font-size: 13.5px;
-    color: var(--ink-soft);
+    font-size: 14px;
+    color: var(--ink);
     margin: 0;
     line-height: 1.55;
 }
+.rn-modal-konteks {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin: 6px 0 0;
+    line-height: 1.5;
+}
 .rn-modal-footer {
     border-top: 1px solid var(--line-subtle);
-    padding: 10px 16px;
-    gap: 8px;
+    padding: 12px 20px;
+    gap: 10px;
+}
+.rn-modal-footer .btn {
+    min-width: 110px;
+    font-weight: 600;
 }
 
 @media (max-width: 991px) {

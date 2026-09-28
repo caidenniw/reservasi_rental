@@ -177,6 +177,8 @@ function rnSalin(idTeks, idTombol) {
     var modalEl = document.getElementById('rnKonfirmasi');
     var pesanEl = document.getElementById('rnKonfirmasiPesan');
     var judulEl = document.getElementById('rnKonfirmasiJudul');
+    var konteksEl = document.getElementById('rnKonfirmasiKonteks');
+    var ikonEl = document.getElementById('rnKonfirmasiIkon');
     var yaBtn = document.getElementById('rnKonfirmasiYa');
     if (!modalEl || !window.bootstrap || !window.bootstrap.Modal) {
         // Fallback: Bootstrap tidak termuat, pakai confirm bawaan. Jangan pernah tanpa konfirmasi.
@@ -202,7 +204,12 @@ function rnSalin(idTeks, idTombol) {
         var bahaya = (/hapus|batal|nonaktif/i.test(f.dataset.konfirmasi) || /hapus|batal/i.test(labelAsli)) && !/revisi/i.test(f.dataset.konfirmasi);
         judulEl.textContent = bahaya ? 'Hapus data?' : 'Lanjutkan?';
         yaBtn.textContent = labelAsli !== '' ? labelAsli : 'Ya, lanjutkan';
-        yaBtn.className = 'btn btn-sm ' + (bahaya ? 'btn-danger' : 'btn-primary');
+        yaBtn.className = 'btn ' + (bahaya ? 'btn-danger' : 'btn-primary');
+        // Konteks: nomor order + nama pesanan dari judul halaman biar yakin hapus yang benar
+        var judulHal = document.querySelector('.page-title');
+        var teksHal = judulHal ? judulHal.textContent.trim() : '';
+        if (konteksEl) konteksEl.textContent = teksHal !== '' ? teksHal : '';
+        if (ikonEl) ikonEl.setAttribute('data-jenis', bahaya ? 'bahaya' : 'normal');
         modal.show();
     });
 
