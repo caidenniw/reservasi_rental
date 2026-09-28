@@ -178,7 +178,16 @@ function rnSalin(idTeks, idTombol) {
     var pesanEl = document.getElementById('rnKonfirmasiPesan');
     var judulEl = document.getElementById('rnKonfirmasiJudul');
     var yaBtn = document.getElementById('rnKonfirmasiYa');
-    if (!modalEl || !window.bootstrap) return; // fallback: tanpa modal, form jalan normal
+    if (!modalEl || !window.bootstrap || !window.bootstrap.Modal) {
+        // Fallback: Bootstrap tidak termuat, pakai confirm bawaan. Jangan pernah tanpa konfirmasi.
+        document.addEventListener('submit', function (ev) {
+            var f = ev.target;
+            if (f.dataset && f.dataset.konfirmasi && f.dataset.lolosKonfirmasi !== '1') {
+                if (!window.confirm(f.dataset.konfirmasi)) ev.preventDefault();
+            }
+        });
+        return;
+    }
     var modal = new bootstrap.Modal(modalEl);
 
     document.addEventListener('submit', function (ev) {
@@ -194,6 +203,7 @@ function rnSalin(idTeks, idTombol) {
         judulEl.textContent = bahaya ? 'Hapus data?' : 'Lanjutkan?';
         yaBtn.textContent = labelAsli !== '' ? labelAsli : 'Ya, lanjutkan';
         yaBtn.className = 'btn btn-sm ' + (bahaya ? 'btn-danger' : 'btn-primary');
+        modal.show();
     });
 
     yaBtn.addEventListener('click', function () {
