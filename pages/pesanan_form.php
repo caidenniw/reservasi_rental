@@ -386,7 +386,7 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
                 <select class="form-select pilih-unit" name="item_unit_id[]">
                     <option value="">-- pilih unit --</option>
                     <?php foreach ($units as $un): ?>
-                        <option value="<?= (int) $un['id'] ?>" data-nopol="<?= e($un['nopol']) ?>" data-modal="<?= (int) $un['harga_modal_default'] ?>" data-jual="<?= (int) $un['harga_jual_default'] ?>"><?= e($un['nama_unit']) ?> - <?= e($un['nopol']) ?></option>
+                        <option value="<?= (int) $un['id'] ?>" data-nama="<?= e($un['nama_unit']) ?>" data-nopol="<?= e($un['nopol']) ?>" data-modal="<?= (int) $un['harga_modal_default'] ?>" data-jual="<?= (int) $un['harga_jual_default'] ?>"><?= e($un['nama_unit']) ?> - <?= e($un['nopol']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

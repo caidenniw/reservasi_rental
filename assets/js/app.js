@@ -9,6 +9,99 @@ function rnAngka(str) {
     return parseInt(String(str || '').replace(/[^0-9]/g, ''), 10) || 0;
 }
 
+function rnSamaTeks(a, b) {
+    return String(a == null ? '' : a).trim() === String(b == null ? '' : b).trim();
+}
+function rnSamaAngka(a, b) {
+    return rnAngka(a) === rnAngka(b);
+}
+/* Samakan nomor HP beda format: +62853..., 0853..., 62853... dianggap sama. */
+function rnSamaHp(a, b) {
+    function digit(s) {
+        return String(s == null ? '' : s).replace(/[^0-9]/g, '').replace(/^(62|0)/, '');
+    }
+    var da = digit(a), db = digit(b);
+    return da !== '' && da === db;
+}
+
+/* Putuskan nilai field saat dropdown diganti: ikut data baru kalau masih kosong
+   atau masih sama dengan bawaan lama; kembalikan ubah:false bila ketikan manual. */
+function rnPutuskanIkut(nilai, prev, baru, sama) {
+    var s = String(nilai == null ? '' : nilai).trim();
+    if (s === '') return { ubah: true, nilai: baru };
+    var p = String(prev == null ? '' : prev).trim();
+    if ((sama || rnSamaTeks)(s, p)) return { ubah: true, nilai: baru };
+    return { ubah: false };
+}
+
+/* Terapkan data unit baru ke satu blok (nama+nopol+modal+jual).
+   dsBaru null = pilihan dikosongkan: identitas dibersihkan, harga manual tetap. */
+function rnTerapkanUnit(sel, dsBaru, kotak) {
+    var namaBaru = dsBaru ? (dsBaru.nama || '') : '';
+    var nopolBaru = dsBaru ? (dsBaru.nopol || '') : '';
+    var modalBaru = dsBaru ? (dsBaru.modal || '') : '';
+    var jualBaru = dsBaru ? (dsBaru.jual || '') : '';
+    var prev = (sel && sel.dataset) ? sel.dataset : {};
+    var fNama = kotak.querySelector('[name="item_nama_unit[]"]');
+    var fNopol = kotak.querySelector('[name="item_nopol[]"]');
+    var fModal = kotak.querySelector('[name="item_harga_modal[]"]');
+    var fJual = kotak.querySelector('[name="item_harga_jual[]"]');
+    var r;
+    r = rnPutuskanIkut(fNama.value, prev.prevNama, namaBaru);
+    if (r.ubah) fNama.value = r.nilai;
+    r = rnPutuskanIkut(fNopol.value, prev.prevNopol, nopolBaru);
+    if (r.ubah) fNopol.value = r.nilai;
+    r = rnPutuskanIkut(fModal.value, prev.prevModal, modalBaru, rnSamaAngka);
+    if (r.ubah) fModal.value = r.nilai;
+    r = rnPutuskanIkut(fJual.value, prev.prevJual, jualBaru, rnSamaAngka);
+    if (r.ubah) fJual.value = r.nilai;
+    if (dsBaru && sel && sel.dataset) {
+        sel.dataset.prevNama = namaBaru;
+        sel.dataset.prevNopol = nopolBaru;
+        sel.dataset.prevModal = modalBaru;
+        sel.dataset.prevJual = jualBaru;
+    }
+}
+
+/* Terapkan data driver baru ke satu blok (nama+HP). Aturan sama seperti unit. */
+function rnTerapkanDriver(sel, dsBaru, kotak) {
+    var namaBaru = dsBaru ? (dsBaru.nama || '') : '';
+    var hpBaru = dsBaru ? (dsBaru.hp || '') : '';
+    var prev = (sel && sel.dataset) ? sel.dataset : {};
+    var fNama = kotak.querySelector('[name="item_nama_driver[]"]');
+    var fHp = kotak.querySelector('[name="item_hp_driver[]"]');
+    var r;
+    r = rnPutuskanIkut(fNama.value, prev.prevNama, namaBaru);
+    if (r.ubah) fNama.value = r.nilai;
+    r = rnPutuskanIkut(fHp.value, prev.prevHp, hpBaru, rnSamaHp);
+    if (r.ubah) fHp.value = r.nilai;
+    if (dsBaru && sel && sel.dataset) {
+        sel.dataset.prevNama = namaBaru;
+        sel.dataset.prevHp = hpBaru;
+    }
+}
+
+/* Catat bawaan awal tiap dropdown (mode edit: dari option terpilih) agar
+   gantian pertama bisa bedakan nilai auto vs ketikan manual tersimpan. */
+function rnInitPrevPilihan(form) {
+    form.querySelectorAll('.pilih-unit').forEach(function (sel) {
+        var opt = sel.options[sel.selectedIndex];
+        if (opt && sel.value && opt.dataset) {
+            sel.dataset.prevNama = opt.dataset.nama || '';
+            sel.dataset.prevNopol = opt.dataset.nopol || '';
+            sel.dataset.prevModal = opt.dataset.modal || '';
+            sel.dataset.prevJual = opt.dataset.jual || '';
+        }
+    });
+    form.querySelectorAll('.pilih-driver').forEach(function (sel) {
+        var opt = sel.options[sel.selectedIndex];
+        if (opt && sel.value && opt.dataset) {
+            sel.dataset.prevNama = opt.dataset.nama || '';
+            sel.dataset.prevHp = opt.dataset.hp || '';
+        }
+    });
+}
+
 function rnSiapkanFormPesanan() {
     var form = document.getElementById('formPesanan');
     if (!form) return;
@@ -119,33 +212,36 @@ function rnSiapkanFormPesanan() {
         });
     }
 
-    /* pilih unit -> isi nama unit + nopol + harga default (hanya kalau masih kosong = opsi A) */
+    /* pilih unit -> nama+nopol selalu melengkapi; harga melengkapi bila belum diubah manual */
     form.addEventListener('change', function (ev) {
         if (ev.target.classList.contains('pilih-unit')) {
-            var opt = ev.target.options[ev.target.selectedIndex];
-            var kotak = ev.target.closest('.item-unit');
-            var nmUnit = kotak.querySelector('[name="item_nama_unit[]"]');
-            if (opt.dataset.nama && nmUnit.value.trim() === '') nmUnit.value = opt.dataset.nama;
-            kotak.querySelector('[name="item_nopol[]"]').value = opt.dataset.nopol || '';
-            var hm = kotak.querySelector('[name="item_harga_modal[]"]');
-            var hj = kotak.querySelector('[name="item_harga_jual[]"]');
-            if (opt.dataset.modal && rnAngka(hm.value) === 0) hm.value = opt.dataset.modal;
-            if (opt.dataset.jual && rnAngka(hj.value) === 0) hj.value = opt.dataset.jual;
+            var sel = ev.target;
+            var opt = sel.options[sel.selectedIndex];
+            var kotak = sel.closest('.item-unit');
+            if (!opt || !sel.value) {
+                rnTerapkanUnit(sel, null, kotak);
+            } else {
+                rnTerapkanUnit(sel, opt.dataset, kotak);
+            }
             ringkas();
         }
     });
 
-    /* pilih driver -> isi nama + HP otomatis */
+    /* pilih driver -> nama+HP selalu melengkapi dengan aturan yang sama seperti unit */
     form.addEventListener('change', function (ev) {
         if (ev.target.classList.contains('pilih-driver')) {
-            var opt = ev.target.options[ev.target.selectedIndex];
-            var kotak = ev.target.closest('.item-unit');
-            var nm = kotak.querySelector('[name="item_nama_driver[]"]');
-            var hp = kotak.querySelector('[name="item_hp_driver[]"]');
-            if (opt.dataset.nama && nm.value.trim() === '') nm.value = opt.dataset.nama;
-            if (opt.dataset.hp && hp.value.trim() === '') hp.value = opt.dataset.hp;
+            var sel = ev.target;
+            var opt = sel.options[sel.selectedIndex];
+            var kotak = sel.closest('.item-unit');
+            if (!opt || !sel.value) {
+                rnTerapkanDriver(sel, null, kotak);
+            } else {
+                rnTerapkanDriver(sel, opt.dataset, kotak);
+            }
         }
     });
+
+    rnInitPrevPilihan(form);
 
     perbaruiNomorUnit();
     ringkas();
