@@ -119,11 +119,13 @@ function rnSiapkanFormPesanan() {
         });
     }
 
-    /* pilih unit -> isi nopol + harga default */
+    /* pilih unit -> isi nama unit + nopol + harga default (hanya kalau masih kosong = opsi A) */
     form.addEventListener('change', function (ev) {
         if (ev.target.classList.contains('pilih-unit')) {
             var opt = ev.target.options[ev.target.selectedIndex];
             var kotak = ev.target.closest('.item-unit');
+            var nmUnit = kotak.querySelector('[name="item_nama_unit[]"]');
+            if (opt.dataset.nama && nmUnit.value.trim() === '') nmUnit.value = opt.dataset.nama;
             kotak.querySelector('[name="item_nopol[]"]').value = opt.dataset.nopol || '';
             var hm = kotak.querySelector('[name="item_harga_modal[]"]');
             var hj = kotak.querySelector('[name="item_harga_jual[]"]');
