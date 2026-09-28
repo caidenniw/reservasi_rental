@@ -3,7 +3,6 @@
 </div><!-- /app -->
 
 <script src="<?= BASE_URL ?>/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
-<script src="<?= BASE_URL ?>/assets/js/app.js?v=20260928c"></script>
 <!-- Modal konfirmasi generik: dipakai semua form data-konfirmasi, teks pesan + label tombol diambil otomatis -->
 <div class="modal fade" id="rnKonfirmasi" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -25,6 +24,7 @@
         </div>
     </div>
 </div>
+<script src="<?= BASE_URL ?>/assets/js/app.js?v=20260928d"></script>
 <script>
 /* Mobile Drawer Handlers */
 function rnBukaSidebarMobile() {

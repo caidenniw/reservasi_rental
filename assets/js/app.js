@@ -173,6 +173,7 @@ function rnSalin(idTeks, idTombol) {
 
 /* ---------- konfirmasi aksi (modal Bootstrap, bukan alert bawaan) ---------- */
 (function () {
+    function pasang() {
     var formTertunda = null;
     var modalEl = document.getElementById('rnKonfirmasi');
     var pesanEl = document.getElementById('rnKonfirmasiPesan');
@@ -221,6 +222,13 @@ function rnSalin(idTeks, idTombol) {
         f.dataset.lolosKonfirmasi = '1';
         f.submit();
     });
+    } // end pasang()
+    // Script sudah di bawah modal (footer), tapi tetap tunggu DOM siap kalau parsed lebih awal
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', pasang);
+    } else {
+        pasang();
+    }
 })();
 
 document.addEventListener('DOMContentLoaded', rnSiapkanFormPesanan);
