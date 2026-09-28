@@ -57,7 +57,7 @@ $totalInv = (int) $inv['total'];
 <meta charset="utf-8">
 <title><?= $mode === 'internal' ? 'Lembar Internal' : 'Invoice' ?> <?= e($inv['nomor_invoice']) ?></title>
 <style>
-    @page { size: A4 portrait; margin: 12mm 16mm 12mm 16mm; }
+    @page { size: A4 portrait; margin: 15mm 20mm 15mm 20mm; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
         font-family: 'Aptos Narrow', 'Segoe UI', Calibri, Arial, sans-serif;
@@ -67,8 +67,8 @@ $totalInv = (int) $inv['total'];
         color-adjust: exact !important;
     }
     .invoice-page {
-        width: 210mm; min-height: 297mm; margin: 8mm auto;
-        background: #fff; padding: 16mm 16mm; box-shadow: 0 0 15px rgba(0,0,0,.15); position: relative;
+        width: 210mm; min-height: 297mm; margin: 10mm auto;
+        background: #fff; padding: 18mm 20mm; box-shadow: 0 0 15px rgba(0,0,0,.15); position: relative;
     }
     .no-print { max-width: 210mm; margin: 14px auto 0; display: flex; gap: 10px; flex-wrap: wrap; }
     .no-print button, .no-print a {
@@ -140,10 +140,10 @@ $totalInv = (int) $inv['total'];
     /* ===== HEADER ===== */
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
     .header-left { flex: 1; }
-    .header-left img { max-height: 52px; max-width: 187px; }
+    .header-left img { max-height: 55px; max-width: 187px; }
     .header-right { text-align: right; }
     .header-right .invoice-title { font-size: 24pt; font-weight: 700; letter-spacing: 2px; }
-    .header-right .company-name { font-size: 12pt; font-weight: 700; margin-top: 2px; }
+    .header-right .company-name { font-size: 12pt; font-weight: 700; margin-top: 4px; }
     .header-right .company-info { font-size: 9pt; margin-top: 2px; line-height: 1.4; }
 
     /* ===== INFO ===== */
@@ -155,7 +155,7 @@ $totalInv = (int) $inv['total'];
     .info-left .client-name { font-weight: 700; font-size: 14pt; line-height: 1.3; }
     .info-right table { width: 100%; }
     .info-right td { padding: 2px 0; font-size: 11pt; vertical-align: top; }
-    .info-right td:first-child { font-weight: 700; width: 42%; }
+    .info-right td:first-child { font-weight: 700; width: 45%; }
     .info-right td.colon { width: 5%; text-align: center; font-weight: 700; }
     .info-right td:last-child { font-weight: 700; }
 
@@ -166,17 +166,19 @@ $totalInv = (int) $inv['total'];
         padding: 6px 4px; border: 1px solid #000; text-align: center; vertical-align: middle;
         -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
     }
-    .main-table tbody td { border-left: 1px solid #000; border-right: 1px solid #000; padding: 5px 6px; vertical-align: top; }
-    .main-table .col-no { text-align: center; width: 24px; }
-    .main-table .col-ket { width: 100px; }
-    .main-table .col-driver { width: 52px; }
-    .main-table .col-tgl { width: 64px; }
-    .main-table .col-rute { width: 96px; }
-    .main-table .col-harga { text-align: right; width: 76px; }
+    .main-table tbody td { border-left: 1px solid #000; border-right: 1px solid #000; padding: 4px 6px; vertical-align: top; }
+    .main-table tbody tr.data-row td { border-bottom: none; border-top: none; }
+    .main-table tbody tr.separator td { border-top: 1px solid #000; }
+    .main-table .col-no { text-align: center; width: 25px; }
+    .main-table .col-ket { width: 105px; }
+    .main-table .col-driver { width: 45px; }
+    .main-table .col-tgl { width: 70px; }
+    .main-table .col-rute { width: 100px; }
+    .main-table .col-harga { text-align: right; width: 80px; }
     .main-table .col-modal { text-align: right; width: 70px; }
-    .main-table .col-hari { text-align: center; width: 32px; }
-    .main-table .col-total { text-align: right; width: 88px; }
-    .main-table tbody tr:not(:first-child) td { border-top: 1px solid #000; }
+    .main-table .col-hari { text-align: center; width: 35px; }
+    .main-table .col-total { text-align: right; width: 100px; }
+    .main-table tbody tr.empty-row td { height: 20px; border-bottom: none; border-top: none; }
 
     .main-table tfoot td { border: 1px solid #000; padding: 4px 6px; font-size: 10pt; font-weight: 700; }
     .main-table tfoot .label-cell { text-align: center; }
@@ -184,18 +186,18 @@ $totalInv = (int) $inv['total'];
     .main-table tfoot .amount-cell { text-align: right; }
 
     /* ===== TERBILANG ===== */
-    .terbilang { margin-top: 10px; font-size: 10pt; font-style: italic; font-weight: 700; }
+    .terbilang { margin-top: 8px; font-size: 10pt; font-style: italic; font-weight: 700; }
     .terbilang .label { font-style: italic; font-weight: 700; }
 
     /* ===== FOOTER ===== */
-    .footer { display: flex; justify-content: space-between; margin-top: 22px; }
-    .footer-left { flex: 0 0 46%; border: 1px solid #000; padding: 8px 10px; font-size: 10.5pt; font-weight: 700; line-height: 1.5; }
+    .footer { display: flex; justify-content: space-between; margin-top: 24px; }
+    .footer-left { flex: 0 0 46%; border: 1px solid #000; padding: 8px 10px; font-size: 11pt; font-weight: 700; line-height: 1.5; }
     .footer-left .catatan-title { font-weight: 700; margin-bottom: 2px; }
     .footer-right { text-align: center; font-size: 11pt; padding-top: 4px; }
     .footer-right .hormat { font-weight: 700; margin-bottom: 4px; }
     .footer-right .company { font-weight: 700; }
-    .footer-right .ttd-space { height: 58px; display: flex; align-items: center; justify-content: center; }
-    .footer-right .ttd-space img { max-height: 58px; }
+    .footer-right .ttd-space { height: 55px; display: flex; align-items: center; justify-content: center; }
+    .footer-right .ttd-space img { max-height: 55px; }
     .footer-right .nama { font-weight: 700; }
 
     .internal-box { border: 1px solid #000; padding: 8px 10px; margin-top: 10px; font-size: 10.5pt; }
@@ -283,16 +285,17 @@ $totalInv = (int) $inv['total'];
             <?php $maxRow = max(count($items), 3); $idx = 0; ?>
             <?php for ($i = 0; $i < $maxRow; $i++): ?>
                 <?php $it = $items[$i] ?? null; ?>
+                <?php $borderTop = ($i > 0 && $it) ? 'border-top:1px solid #000;' : ''; ?>
                 <?php if ($it): ?>
-                <tr>
-                    <td class="col-no"><?= (int) $it['no'] ?></td>
-                    <td class="col-ket"><?= nl2br(e($it['keterangan'])) ?></td>
-                    <td class="col-driver"><?= nl2br(e($it['driver'])) ?></td>
-                    <td class="col-tgl"><?= e($it['tanggal_pakai']) ?></td>
-                    <td class="col-rute"><?= nl2br(e($it['rute'])) ?></td>
-                    <td class="col-harga">Rp <?= rupiah($it['harga_hari'], false) ?></td>
+                <tr class="data-row"<?php if ($i > 0): ?> style="border-top:1px solid #000;"<?php endif; ?>>
+                    <td class="col-no" style="<?= $borderTop ?>"><?= (int) $it['no'] ?></td>
+                    <td class="col-ket" style="<?= $borderTop ?>"><?= nl2br(e($it['keterangan'])) ?></td>
+                    <td class="col-driver" style="<?= $borderTop ?>"><?= nl2br(e($it['driver'])) ?></td>
+                    <td class="col-tgl" style="<?= $borderTop ?>"><?= e($it['tanggal_pakai']) ?></td>
+                    <td class="col-rute" style="<?= $borderTop ?>"><?= nl2br(e($it['rute'])) ?></td>
+                    <td class="col-harga" style="<?= $borderTop ?>">Rp <?= rupiah($it['harga_hari'], false) ?></td>
                     <?php if ($mode === 'internal'): ?>
-                        <td class="col-modal">
+                        <td class="col-modal" style="<?= $borderTop ?>">
                             <?php
                             $modal = 0;
                             if (isset($order['items'][$idx])) $modal = (int) $order['items'][$idx]['harga_modal_per_hari'];
@@ -301,11 +304,11 @@ $totalInv = (int) $inv['total'];
                             ?>
                         </td>
                     <?php endif; ?>
-                    <td class="col-hari"><?= (int) $it['total_hari'] ?></td>
-                    <td class="col-total">Rp <?= rupiah($it['total_harga'], false) ?></td>
+                    <td class="col-hari" style="<?= $borderTop ?>"><?= (int) $it['total_hari'] ?></td>
+                    <td class="col-total" style="<?= $borderTop ?>">Rp <?= rupiah($it['total_harga'], false) ?></td>
                 </tr>
                 <?php else: ?>
-                <tr>
+                <tr class="empty-row">
                     <td class="col-no">&nbsp;</td>
                     <td class="col-ket">&nbsp;</td>
                     <td class="col-driver">&nbsp;</td>
