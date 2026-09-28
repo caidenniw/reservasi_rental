@@ -306,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi_import'])) {
                     $prow = $st->get_result()->fetch_assoc();
                     if ($prow) $partnerId = (int)$prow['id'];
                     else {
-                        $insP = $db->prepare('INSERT INTO partners (nama,status) VALUES (?,"aktif")');
+                        $insP = $db->prepare('INSERT INTO partners (nama) VALUES (?)');
                         $insP->bind_param('s', $asalUnitTrim);
                         $insP->execute();
                         $partnerId = (int)$db->insert_id;
@@ -322,10 +322,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi_import'])) {
                 if ($urow) $unitId = (int)$urow['id'];
                 else {
                     $kodeUnit = 'IMP-' . preg_replace('/[^A-Z0-9]/','',$nopolRaw);
-                    $jenis='MPV'; $statusUnitDb='aktif';
-                    $insU = $db->prepare('INSERT INTO units (kode_unit,nama_unit,nopol,jenis,pemilik,harga_modal_default,harga_jual_default,status) VALUES (?,?,?,?,?,?,?,?)');
-                    $pemilik = $asalUnitTrim ?: '1000 Rent';
-                    $insU->bind_param('sssssiis', $kodeUnit, $unitNama, $nopolRaw, $jenis, $pemilik, $hargaModalPerHari, $hargaJualPerHari, $statusUnitDb);
+                    $jenis='MPV'; $statusUnitDb='ready';
+                    $insU = $db->prepare('INSERT INTO units (kode_unit,nama_unit,nopol,jenis,pemilik,partner_id,harga_modal_default,harga_jual_default,status) VALUES (?,?,?,?,?,?,?,?,?)');
+                    $milikSendiri = ($asalUnitTrim === '' || strtolower($asalUnitTrim) === '1000 rent' || strtolower($asalUnitTrim) === '1000rent');
+                    $pemilik = $milikSendiri ? 'sendiri' : 'partner';
+                    $partnerUnitBind = $milikSendiri ? null : $partnerId;
+                    $insU->bind_param('sssssiiss', $kodeUnit, $unitNama, $nopolRaw, $jenis, $pemilik, $partnerUnitBind, $hargaModalPerHari, $hargaJualPerHari, $statusUnitDb);
                     $insU->execute();
                     $unitId = (int)$db->insert_id;
                 }
@@ -340,8 +342,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi_import'])) {
                     $drow = $st->get_result()->fetch_assoc();
                     if ($drow) $driverId = (int)$drow['id'];
                     else {
-                        $insD = $db->prepare('INSERT INTO drivers (nama,status) VALUES (?,"aktif")');
-                        $insD->bind_param('s', $driverNamaRaw);
+                        $insD = $db->prepare('INSERT INTO drivers (nama,status) VALUES (?,?)');
+                        $statusDrv = 'aktif';
+                        $insD->bind_param('ss', $driverNamaRaw, $statusDrv);
                         $insD->execute();
                         $driverId = (int)$db->insert_id;
                     }
