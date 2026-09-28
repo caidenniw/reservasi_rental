@@ -6,6 +6,10 @@ $db = getDB();
 $cari   = trim((string) ($_GET['cari'] ?? ''));
 $status = trim((string) ($_GET['status'] ?? ''));
 $bulan  = trim((string) ($_GET['bulan'] ?? ''));
+$dari   = trim((string) ($_GET['dari'] ?? ''));
+$sampai = trim((string) ($_GET['sampai'] ?? ''));
+$tipe   = trim((string) ($_GET['tipe'] ?? ''));
+$urut   = trim((string) ($_GET['urut'] ?? 'sewa'));
 $hal    = max(1, (int) ($_GET['hal'] ?? 1));
 $perHal = 15;
 
@@ -15,12 +19,23 @@ $types  = '';
 
 if ($cari !== '') {
     $where[] = '(o.nomor_order LIKE ? OR o.nama_pesanan LIKE ? OR o.nama_pic LIKE ? OR o.kota LIKE ?
-                 OR EXISTS (SELECT 1 FROM order_items x WHERE x.order_id = o.id AND x.nopol LIKE ?))';
-    for ($i = 0; $i < 5; $i++) { $params[] = '%' . $cari . '%'; $types .= 's'; }
+                 OR EXISTS (SELECT 1 FROM order_items x WHERE x.order_id = o.id AND x.nopol LIKE ?)
+                 OR EXISTS (SELECT 1 FROM invoices v WHERE v.order_id = o.id AND v.nomor_invoice LIKE ? AND v.status <> \'batal\'))';
+    for ($i = 0; $i < 6; $i++) { $params[] = '%' . $cari . '%'; $types .= 's'; }
 }
 if ($status !== '') { $where[] = 'o.status = ?'; $params[] = $status; $types .= 's'; }
 if ($bulan !== '')  { $where[] = "DATE_FORMAT(o.tgl_mulai, '%Y-%m') = ?"; $params[] = $bulan; $types .= 's'; }
+if ($dari !== '')   { $where[] = 'o.tgl_mulai >= ?'; $params[] = $dari; $types .= 's'; }
+if ($sampai !== '') { $where[] = 'o.tgl_mulai <= ?'; $params[] = $sampai; $types .= 's'; }
+if (in_array($tipe, ['retail', 'corporate', 'RO', 'RTR'], true)) { $where[] = 'o.tipe_pelanggan = ?'; $params[] = $tipe; $types .= 's'; }
 $whereSql = 'WHERE ' . implode(' AND ', $where);
+
+/* urutan tampil: whitelist, di luar itu fallback ke default */
+$orderSql = match ($urut) {
+    'input' => 'o.created_at DESC, o.id DESC',
+    'nomor' => 'o.nomor_order DESC, o.id DESC',
+    default => 'o.tgl_mulai DESC, o.id DESC',
+};
 
 $s = $db->prepare("SELECT COUNT(*) c FROM orders o $whereSql");
 if ($types !== '') $s->bind_param($types, ...$params);
@@ -35,7 +50,7 @@ $sqlData = "SELECT o.*,
     FROM orders o
     LEFT JOIN invoices inv ON inv.id = (SELECT id FROM invoices WHERE order_id = o.id AND status <> 'batal' ORDER BY id DESC LIMIT 1)
     $whereSql
-    ORDER BY o.tgl_mulai DESC, o.id DESC
+    ORDER BY $orderSql
     LIMIT ? OFFSET ?";
 
 $paramsData = $params;
@@ -83,9 +98,9 @@ include __DIR__ . '/../includes/header.php';
 ?>
 <div class="card-box">
     <form class="row g-2 align-items-end" method="get">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label class="form-label" for="cari">Cari</label>
-            <input type="text" class="form-control form-control-sm" id="cari" name="cari" value="<?= e($cari) ?>" placeholder="no. order / pesanan / PIC / nopol / kota">
+            <input type="text" class="form-control form-control-sm" id="cari" name="cari" value="<?= e($cari) ?>" placeholder="no. order / invoice / pesanan / PIC / nopol / kota">
         </div>
         <div class="col-md-2">
             <label class="form-label" for="status">Status</label>
@@ -94,6 +109,24 @@ include __DIR__ . '/../includes/header.php';
                 <?php foreach (daftarStatus() as $st): ?>
                     <option value="<?= $st ?>" <?= $status === $st ? 'selected' : '' ?>><?= e(statusLabel($st)) ?></option>
                 <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="tipe">Tipe</label>
+            <select class="form-select form-select-sm" id="tipe" name="tipe">
+                <option value="">Semua</option>
+                <option value="retail" <?= $tipe === 'retail' ? 'selected' : '' ?>>Retail</option>
+                <option value="corporate" <?= $tipe === 'corporate' ? 'selected' : '' ?>>Corporate</option>
+                <option value="RO" <?= $tipe === 'RO' ? 'selected' : '' ?>>Repeat Order</option>
+                <option value="RTR" <?= $tipe === 'RTR' ? 'selected' : '' ?>>RTR (Rent to Rent)</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="urut">Urutkan</label>
+            <select class="form-select form-select-sm" id="urut" name="urut">
+                <option value="sewa" <?= $urut === 'sewa' ? 'selected' : '' ?>>Sewa terbaru</option>
+                <option value="input" <?= $urut === 'input' ? 'selected' : '' ?>>Baru diinput</option>
+                <option value="nomor" <?= $urut === 'nomor' ? 'selected' : '' ?>>No. order terbaru</option>
             </select>
         </div>
         <div class="col-md-2">
@@ -106,7 +139,15 @@ include __DIR__ . '/../includes/header.php';
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-2">
+            <label class="form-label" for="dari">Dari tgl</label>
+            <input type="date" class="form-control form-control-sm" id="dari" name="dari" value="<?= e($dari) ?>">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="sampai">Sampai tgl</label>
+            <input type="date" class="form-control form-control-sm" id="sampai" name="sampai" value="<?= e($sampai) ?>">
+        </div>
+        <div class="col-md-5">
             <div class="baris-aksi">
                 <button type="submit" class="btn btn-sm btn-primary">Terapkan</button>
                 <a class="btn btn-sm btn-outline-secondary" href="<?= BASE_URL ?>/pages/pesanan_list.php">Reset</a>

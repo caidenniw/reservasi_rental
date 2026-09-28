@@ -171,12 +171,39 @@ function rnSalin(idTeks, idTombol) {
     }
 }
 
-/* ---------- konfirmasi aksi ---------- */
-document.addEventListener('submit', function (ev) {
-    var f = ev.target;
-    if (f.dataset && f.dataset.konfirmasi) {
-        if (!confirm(f.dataset.konfirmasi)) ev.preventDefault();
-    }
-});
+/* ---------- konfirmasi aksi (modal Bootstrap, bukan alert bawaan) ---------- */
+(function () {
+    var formTertunda = null;
+    var modalEl = document.getElementById('rnKonfirmasi');
+    var pesanEl = document.getElementById('rnKonfirmasiPesan');
+    var judulEl = document.getElementById('rnKonfirmasiJudul');
+    var yaBtn = document.getElementById('rnKonfirmasiYa');
+    if (!modalEl || !window.bootstrap) return; // fallback: tanpa modal, form jalan normal
+    var modal = new bootstrap.Modal(modalEl);
+
+    document.addEventListener('submit', function (ev) {
+        var f = ev.target;
+        if (!f.dataset || !f.dataset.konfirmasi || f.dataset.lolosKonfirmasi === '1') return;
+        ev.preventDefault();
+        formTertunda = f;
+        pesanEl.textContent = f.dataset.konfirmasi;
+        // Judul + warna tombol ikut jenis aksi: hapus/batal = bahaya (merah), sisanya normal
+        var tombolAsli = f.querySelector('button[type="submit"]');
+        var labelAsli = tombolAsli ? tombolAsli.textContent.trim() : '';
+        var bahaya = (/hapus|batal|nonaktif/i.test(f.dataset.konfirmasi) || /hapus|batal/i.test(labelAsli)) && !/revisi/i.test(f.dataset.konfirmasi);
+        judulEl.textContent = bahaya ? 'Hapus data?' : 'Lanjutkan?';
+        yaBtn.textContent = labelAsli !== '' ? labelAsli : 'Ya, lanjutkan';
+        yaBtn.className = 'btn btn-sm ' + (bahaya ? 'btn-danger' : 'btn-primary');
+    });
+
+    yaBtn.addEventListener('click', function () {
+        if (!formTertunda) return;
+        var f = formTertunda;
+        formTertunda = null;
+        modal.hide();
+        f.dataset.lolosKonfirmasi = '1';
+        f.submit();
+    });
+})();
 
 document.addEventListener('DOMContentLoaded', rnSiapkanFormPesanan);

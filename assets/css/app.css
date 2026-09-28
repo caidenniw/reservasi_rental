@@ -920,6 +920,32 @@ html {
     transition: opacity var(--motion-med) ease;
 }
 
+/* =====================================================================
+   MODAL KONFIRMASI (pengganti alert bawaan browser)
+   ===================================================================== */
+.rn-modal {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+}
+.rn-modal-judul {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+}
+.rn-modal-pesan {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.55;
+}
+.rn-modal-footer {
+    border-top: 1px solid var(--line-subtle);
+    padding: 10px 16px;
+    gap: 8px;
+}
+
 @media (max-width: 991px) {
     .app {
         flex-direction: column;
