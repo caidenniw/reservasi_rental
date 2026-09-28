@@ -107,7 +107,7 @@ echo "Unit: {$unitRow['nama_unit']} {$unitRow['nopol']} (modal ".rupiah($unitRow
 echo "Driver: {$driverRow['nama']} (id {$driverRow['id']})\n";
 
 $cntOrderBefore = (int)($db->query("SELECT urut FROM doc_counters WHERE jenis='order' AND periode='".date('Y-m')."'")->fetch_assoc()['urut'] ?? 0);
-$cntInvBefore   = (int)($db->query("SELECT urut FROM doc_counters WHERE jenis='invoice' AND periode='".date('Y-m')."'")->fetch_assoc()['urut'] ?? 0);
+$cntInvBefore   = (int)($db->query("SELECT urut FROM doc_counters WHERE jenis='invoice' AND periode='global'")->fetch_assoc()['urut'] ?? 0);
 echo "Counter sebelum: order=$cntOrderBefore invoice=$cntInvBefore\n";
 $createdOrderIds=[]; $createdInvoiceIds=[];
 
@@ -259,7 +259,7 @@ echo "  Lama A status=".$lamaRow['status']." (batal)\n";
 section("RINGKASAN UJI 3");
 echo "Order: ".implode(', ',$createdOrderIds)."\n";
 echo "Invoice: ".implode(', ',$createdInvoiceIds)."\n";
-echo "Counter order ".($db->query("SELECT urut FROM doc_counters WHERE jenis='order' AND periode='".date('Y-m')."'")->fetch_assoc()['urut'])." invoice ".($db->query("SELECT urut FROM doc_counters WHERE jenis='invoice' AND periode='".date('Y-m')."'")->fetch_assoc()['urut'])."\n";
+echo "Counter order ".($db->query("SELECT urut FROM doc_counters WHERE jenis='order' AND periode='".date('Y-m')."'")->fetch_assoc()['urut'])." invoice ".($db->query("SELECT urut FROM doc_counters WHERE jenis='invoice' AND periode='global'")->fetch_assoc()['urut'] ?? 0)."\n";
 
 section("CLEANUP (hapus data uji, kembalikan counter)");
 foreach($createdInvoiceIds as $iid){ $db->query("DELETE FROM payments WHERE invoice_id=$iid"); }
@@ -274,7 +274,7 @@ foreach($createdOrderIds as $oid){
     if($cid) $db->query("DELETE FROM customers WHERE id=$cid AND nama_pesanan LIKE 'UJI-%'");
 }
 $db->query("UPDATE doc_counters SET urut=$cntOrderBefore WHERE jenis='order' AND periode='".date('Y-m')."'");
-$db->query("UPDATE doc_counters SET urut=$cntInvBefore WHERE jenis='invoice' AND periode='".date('Y-m')."'");
+$db->query("UPDATE doc_counters SET urut=$cntInvBefore WHERE jenis='invoice' AND periode='global'");
 echo "  Counter dikembalikan ke $cntOrderBefore / $cntInvBefore\n";
 echo "  Sisa UJI orders=".($db->query("SELECT COUNT(*) c FROM orders WHERE nama_pesanan LIKE 'UJI-%'")->fetch_assoc()['c'])."\n";
 echo "\n=== UJI 3 SELESAI ===\n";

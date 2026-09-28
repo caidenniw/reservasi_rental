@@ -220,10 +220,46 @@ function simpanSetting(string $key, string $value): void
 
 /* ============================== PENOMORAN DOKUMEN ============================== */
 
+/* Angka bulan (1-12) menjadi angka Romawi (I..XII) untuk nomor faktur. */
+function bulanRomawi(int $bulan): string
+{
+    $m = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+    return $m[$bulan] ?? '';
+}
+
 function nomorDokumen(string $jenis): string
 {
     $db = getDB();
-    $prefix  = $jenis === 'invoice' ? getSetting('prefix_invoice', 'INV') : getSetting('prefix_order', 'RN');
+    if ($jenis === 'invoice') {
+        // Format faktur asli perusahaan: 1000-INV/{ROMawi bulan terbit}/{KODE CABANG}-{URUT GLOBAL}
+        // Contoh: 1000-INV/IX/MDN-24621. Urut lanjut dari 24620 (faktur kertas terakhir).
+        $prefix = getSetting('prefix_invoice', '1000-INV');
+        $cabang = strtoupper(trim(getSetting('kode_cabang', 'MDN'))) ?: 'MDN';
+        $periode = 'global';
+        $db->begin_transaction();
+        try {
+            $stmt = $db->prepare('SELECT urut FROM doc_counters WHERE jenis = ? AND periode = ? FOR UPDATE');
+            $stmt->bind_param('ss', $jenis, $periode);
+            $stmt->execute();
+            $row  = $stmt->get_result()->fetch_assoc();
+            $urut = $row ? ((int) $row['urut'] + 1) : 24621;
+            if ($row) {
+                $upd = $db->prepare('UPDATE doc_counters SET urut = ? WHERE jenis = ? AND periode = ?');
+                $upd->bind_param('iss', $urut, $jenis, $periode);
+                $upd->execute();
+            } else {
+                $ins = $db->prepare('INSERT INTO doc_counters (jenis, periode, urut) VALUES (?, ?, ?)');
+                $ins->bind_param('ssi', $jenis, $periode, $urut);
+                $ins->execute();
+            }
+            $db->commit();
+        } catch (Throwable $e) {
+            $db->rollback();
+            throw $e;
+        }
+        return $prefix . '/' . bulanRomawi((int) date('n')) . '/' . $cabang . '-' . $urut;
+    }
+    $prefix  = getSetting('prefix_order', 'RN');
     $periode = date('Y-m');
     $db->begin_transaction();
     try {
@@ -247,9 +283,7 @@ function nomorDokumen(string $jenis): string
         throw $e;
     }
     $pad = str_pad((string) $urut, 4, '0', STR_PAD_LEFT);
-    return $jenis === 'invoice'
-        ? $prefix . '/' . date('Y/m') . '/' . $pad
-        : $prefix . '-' . date('ym') . '-' . $pad;
+    return $prefix . '-' . date('ym') . '-' . $pad;
 }
 
 /* ============================== ORDER ============================== */
