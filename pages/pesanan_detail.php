@@ -158,7 +158,7 @@ include __DIR__ . '/../includes/header.php';
                 </form>
             <?php else: ?>
                 <dl class="dl-2">
-                    <dt>Nomor</dt><dd class="mono"><?= e($invAktif['nomor_invoice']) ?><?= (int) $invAktif['nomor_revisi_ke'] > 0 ? ' (diperbarui ' . (int) $invAktif['nomor_revisi_ke'] . 'x)' : '' ?></dd>
+                    <dt>Nomor</dt><dd class="mono"><?= e($invAktif['nomor_invoice']) ?></dd>
                     <dt>Tanggal</dt><dd><?= e(tglId($invAktif['tanggal_invoice'])) ?></dd>
                     <dt>Jatuh Tempo</dt><dd><?= e(tglId($invAktif['jatuh_tempo'])) ?></dd>
                     <dt>Status</dt><dd><?= statusBadge($invAktif['status']) ?></dd>

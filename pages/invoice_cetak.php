@@ -253,7 +253,7 @@ $totalInv = (int) $inv['total'];
             <table>
                 <tr>
                     <td>No. Faktur</td><td class="colon">:</td>
-                    <td><?= e($inv['nomor_invoice']) ?><?= (int) $inv['nomor_revisi_ke'] > 0 ? ' (diperbarui ' . (int) $inv['nomor_revisi_ke'] . 'x)' : '' ?></td>
+                    <td><?= e($inv['nomor_invoice']) ?></td>
                 </tr>
                 <tr>
                     <td>Tanggal</td><td class="colon">:</td>
