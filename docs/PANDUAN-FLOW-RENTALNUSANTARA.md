@@ -34,7 +34,7 @@ WA MASUK ──> BUKA Input Pesanan
               ▼
         TERBITKAN INVOICE → nomor INV/2026/09/xxxx terkunci + panjar otomatis jadi 1 baris DP (tidak input lagi)
               │
-              ├─ Jika ada yang salah harga/tanggal ──> REVISI INVOICE (nomor lama Batal, nomor baru terbit, uang yang sudah masuk IKUT PINDAH)
+              ├─ Jika ada yang salah harga/tanggal ──> PERBARUI INVOICE (nomor invoice TETAP SAMA, isi & total disesuaikan, uang yang sudah masuk tetap menempel)
               └─ Jika lunas ──> CATAT PEMBAYARAN (pelunasan) → status jadi LUNAS → CETAK
 ```
 
@@ -77,7 +77,7 @@ Asal User `IG` → **Retail / Instagram**, 1 hari 850rb, Panjar = 850rb (=Grand)
 | **Data Tamu internal** | Pemesan `Boavista Rent Car` ≠ Tamu `Imigrasi`. Invoice ke Boavista tidak perlu sebut tamu (privasi + rapi). Simpan internal untuk handle komplain/lacak. | Alternatif: cetak di invoice. Trade-off: invoice jadi bocorkan data tamu ke pemesan, tidak diminta. |
 | **Harga disimpan per-hari, bukan total** | Excel kadang tulis total, kadang per-hari, bahkan `1.150.000` bisa per-hari (row DISBUDPORAPAR). Simpan per-hari → hitung inklusif konsisten, revisi hari otomatis. | Alternatif: simpan total. Trade-off: ganti tanggal tidak auto-koreksi. Importer sudah ada heuristic 15% untuk deteksi. |
 | **Support By per unit, bukan per order** | Satu pesanan bisa 3 mobil: 2 dari 1000 Rent, 1 dari Aksa. Partner beda per unit, margin beda. | Alternatif: global per order. Trade-off: tidak akurat jika mix armada. |
-| **Invoice bernomor & terkunci** | Nomor `INV/YYYY/MM/xxxx` counter per bulan, anti duplikat, audit keuangan rapi. Revisi = nomor baru + lama Batal + pembayaran pindah otomatis (tidak hilang uang). | Alternatif: edit invoice langsung. Trade-off: nomor bisa inkonsisten, jejak audit hilang. |
+| **Invoice bernomor** | Nomor `1000-INV/ROMAWI/CABANG-urut` (mis. `1000-INV/IX/MDN-24621`), counter anti duplikat. Kalau ada perubahan, pakai **Perbarui Invoice**: nomor TETAP SAMA, isi/total disesuaikan, uang yang sudah masuk tidak hilang. | Alternatif: bikin nomor baru tiap revisi (nomor lama batal). Trade-off: nomor menumpuk, admin bingung mana yang berlaku. |
 | **Import Excel pratinjau dulu, baru import** | Excel 918 baris, header merge, tanggal `01 Ags` tanpa tahun, harga campur — rawan salah. Pratinjau 25 baris + ringkas total/siap/error → admin cek dulu. | Alternatif: langsung import semua. Trade-off: kalau 30 baris error, cleanup manual capek. Best practice: import 25–50 baris per batch, cek Data Pesanan, baru lanjut. |
 
 ---
@@ -94,7 +94,7 @@ Asal User `IG` → **Retail / Instagram**, 1 hari 850rb, Panjar = 850rb (=Grand)
 
 **E. Mix armada partner** → Per unit pilih Support By (1000 Rent = kosong, Aksa/Kak Maria = pilih). Margin = Grand − ΣModal×hari (modal partner tetap dicatat).
 
-**F. Salah harga/tanggal setelah invoice terbit** → Jangan edit form langsung. Klik **Revisi Invoice** → nomor baru, lama jadi `batal`, semua pembayaran **ikut pindah** ke nomor baru. Nomor terkunci tetap terjaga.
+**F. Salah harga/tanggal setelah invoice terbit** → Jangan edit form langsung lalu kirim ulang tanpa izin. Simpan perubahan di pesanan, lalu klik **Perbarui Invoice** → nomor invoice **TETAP SAMA**, isi dan total disesuaikan, pembayaran yang sudah masuk tetap menempel, dan cetak ulang.
 
 **G. Customer batal** → **Batalkan Pesanan** (status `cancelled`) atau **Hapus** (soft-delete, data tetap di DB untuk audit).
 
@@ -110,7 +110,7 @@ Asal User `IG` → **Retail / Instagram**, 1 hari 850rb, Panjar = 850rb (=Grand)
 
 **M. Overtime teks bebas** → Kolom R Excel sering `26 Jun Ovt 1 Jam 02 Juli Ovt 4 Jam Rp. 100rb/jam` — importer ekstrak angka `rb`/`ribu` terbesar sebagai nominal biaya tambahan. Jika tidak ada nominal, disimpan sebagai catatan saja.
 
-**N. Ubah panjar setelah invoice terbit** → Panjar di order tidak mengubah invoice yang sudah terkunci. Harus **Revisi Invoice** (panjar snapshot saat terbit). Untuk belum terbit, edit form → panjar berubah → terbitkan nanti ikut.
+**N. Ubah panjar setelah invoice terbit** → Panjar di order tidak otomatis mengubah invoice. Klik **Perbarui Invoice** (nomor tetap sama) supaya isi invoice disesuaikan. Untuk belum terbit, edit form → panjar berubah → terbitkan nanti ikut.
 
 **O. Cetak** → Invoice customer = tanpa modal/margin. Lembar internal = dengan modal & margin (untuk bos/arsip).
 
@@ -149,7 +149,7 @@ Asal User `IG` → **Retail / Instagram**, 1 hari 850rb, Panjar = 850rb (=Grand)
 A: Edit Pesanan (sebelum terbitkan invoice) → isi Panjar → Simpan. Baru Terbitkan Invoice — DP akan ikut.
 
 **Q: Invoice sudah terbit, mau tambah overtime?**
-A: Edit Pesanan → tambah Biaya → Simpan → **Revisi Invoice**. Biaya baru ikut ke invoice baru, DP/pelunasan lama ikut pindah.
+A: Edit Pesanan → tambah Biaya → Simpan → **Perbarui Invoice**. Nomor invoice tetap sama, biaya baru ikut masuk, DP/pelunasan lama tetap menempel.
 
 **Q: Excel lama 918 baris mau diimport semua langsung?**
 A: Jangan. Pratinjau dulu. Kalau `error >5`, perbaiki Excel. Import 50 baris per batch, cek Data Pesanan tiap batch.

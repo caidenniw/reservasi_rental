@@ -242,19 +242,23 @@ $invRowC=$db->query("SELECT total, dp, sisa, status FROM invoices WHERE id={$inv
 echo "  Invoice C: dp=".rupiah($invRowC['dp'])." sisa=".rupiah($invRowC['sisa'])." status=".$invRowC['status']."\n";
 assertEq($invRowC['status'],'lunas',"C lunas langsung");
 
-// Revisi A
-section("Revisi Invoice A (perbaikan harga, pembayaran ikut pindah)");
+// Perbarui Invoice A (nomor TETAP SAMA - permintaan internal)
+section("Perbarui Invoice A (nomor tetap, pembayaran tetap menempel)");
 $lamaInv=$db->query("SELECT id, nomor_invoice, nomor_revisi_ke FROM invoices WHERE id={$invA['id']}")->fetch_assoc();
 $orderA3=ambilOrder($orderIdA);
-$invA_rev=uji_terbitkanInvoice($orderA3, (int)$lamaInv['nomor_revisi_ke']+1, $lamaInv['nomor_invoice']);
-echo "  Revisi: {$lamaInv['nomor_invoice']} -> {$invA_rev['nomor']}\n"; $createdInvoiceIds[]=$invA_rev['id'];
-$db->query("UPDATE payments SET invoice_id={$invA_rev['id']} WHERE invoice_id={$lamaInv['id']}");
-$db->query("UPDATE invoices SET status='batal', replaced_by='{$invA_rev['nomor']}' WHERE id={$lamaInv['id']}");
-uji_perbaruiInvoice($invA_rev['id'], $orderIdA);
-$revRow=$db->query("SELECT status, dp, sisa FROM invoices WHERE id={$invA_rev['id']}")->fetch_assoc();
-echo "  Revisi A: status={$revRow['status']} dp=".rupiah($revRow['dp'])." sisa=".rupiah($revRow['sisa'])."\n";
-$lamaRow=$db->query("SELECT status FROM invoices WHERE id={$lamaInv['id']}")->fetch_assoc();
-echo "  Lama A status=".$lamaRow['status']." (batal)\n";
+$nomorTetap=$lamaInv['nomor_invoice'];
+$revKe=(int)$lamaInv['nomor_revisi_ke']+1;
+$totalBaru=(int)$orderA3['grand_total'];
+// perbarui isi invoice di tempat (nomor tidak berubah) - cermin perbaruiIsiInvoice()
+$db->query("UPDATE invoices SET total=$totalBaru, nomor_revisi_ke=$revKe WHERE id={$lamaInv['id']}");
+$db->query("DELETE FROM invoice_items WHERE invoice_id={$lamaInv['id']}");
+echo "  Perbarui: {$nomorTetap} (diperbarui {$revKe}x, nomor TETAP)\n";
+uji_perbaruiInvoice((int)$lamaInv['id'], $orderIdA);
+$revRow=$db->query("SELECT nomor_invoice, status, dp, sisa, nomor_revisi_ke FROM invoices WHERE id={$lamaInv['id']}")->fetch_assoc();
+echo "  Setelah perbarui: nomor={$revRow['nomor_invoice']} status={$revRow['status']} dp=".rupiah($revRow['dp'])." sisa=".rupiah($revRow['sisa'])."\n";
+assertEq($revRow['nomor_invoice'], $nomorTetap, "nomor invoice tetap sama");
+$jmlInvA=$db->query("SELECT COUNT(*) c FROM invoices WHERE order_id=$orderIdA")->fetch_assoc()['c'];
+assertEq((int)$jmlInvA, 1, "tidak ada invoice batal menumpuk");
 
 section("RINGKASAN UJI 3");
 echo "Order: ".implode(', ',$createdOrderIds)."\n";

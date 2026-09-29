@@ -147,7 +147,7 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
     <div class="alert alert-warning">
         Pesanan ini sudah punya <b>invoice yang terbit</b>. Mengubah harga atau jumlah hari di sini
         <b>tidak mengubah invoice yang sudah terbit</b>. Kalau perlu memperbarui dokumen, simpan dulu,
-        lalu buka halaman detail dan klik <b>Revisi Invoice</b>.
+        lalu buka halaman detail dan klik <b>Perbarui Invoice</b> (nomor invoice tetap sama).
     </div>
 <?php endif; ?>
 <form method="post" action="<?= BASE_URL ?>/pages/pesanan_proses.php" id="formPesanan">

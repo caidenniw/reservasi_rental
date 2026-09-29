@@ -34,7 +34,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="alert alert-warning">
         <b>Perhatian:</b> data pesanan (<?= rupiah($order['grand_total']) ?>) berbeda dari invoice yang sudah
         terbit (<?= rupiah($invAktif['total']) ?>). Kalau perubahan ini memang harus masuk ke dokumen,
-        klik <b>Revisi Invoice</b> di bawah supaya invoice diperbarui dengan nomor baru.
+        klik <b>Perbarui Invoice</b> di bawah supaya isi invoice disesuaikan (nomor invoice tetap sama).
     </div>
 <?php endif; ?>
 <div class="card-box">
@@ -158,7 +158,7 @@ include __DIR__ . '/../includes/header.php';
                 </form>
             <?php else: ?>
                 <dl class="dl-2">
-                    <dt>Nomor</dt><dd class="mono"><?= e($invAktif['nomor_invoice']) ?><?= (int) $invAktif['nomor_revisi_ke'] > 0 ? ' (revisi ke-' . (int) $invAktif['nomor_revisi_ke'] . ')' : '' ?></dd>
+                    <dt>Nomor</dt><dd class="mono"><?= e($invAktif['nomor_invoice']) ?><?= (int) $invAktif['nomor_revisi_ke'] > 0 ? ' (diperbarui ' . (int) $invAktif['nomor_revisi_ke'] . 'x)' : '' ?></dd>
                     <dt>Tanggal</dt><dd><?= e(tglId($invAktif['tanggal_invoice'])) ?></dd>
                     <dt>Jatuh Tempo</dt><dd><?= e(tglId($invAktif['jatuh_tempo'])) ?></dd>
                     <dt>Status</dt><dd><?= statusBadge($invAktif['status']) ?></dd>
@@ -169,11 +169,11 @@ include __DIR__ . '/../includes/header.php';
                 <div class="baris-aksi mt-2">
                     <a class="btn btn-sm btn-primary" href="<?= BASE_URL ?>/pages/invoice_cetak.php?id=<?= (int) $invAktif['id'] ?>" target="_blank">Cetak Invoice</a>
                     <a class="btn btn-sm btn-outline-secondary" href="<?= BASE_URL ?>/pages/invoice_cetak.php?id=<?= (int) $invAktif['id'] ?>&mode=internal" target="_blank">Cetak Lembar Internal</a>
-                    <form method="post" action="<?= BASE_URL ?>/pages/pesanan_aksi.php" data-konfirmasi="Revisi invoice? Nomor lama akan ditandai batal dan nomor baru diterbitkan.">
+                    <form method="post" action="<?= BASE_URL ?>/pages/pesanan_aksi.php" data-konfirmasi="Perbarui isi invoice dengan data pesanan terbaru? Nomor invoice TETAP SAMA dan di cetak ulang isinya ikut berubah.">
                         <?= csrfField() ?>
                         <input type="hidden" name="id" value="<?= (int) $order['id'] ?>">
                         <input type="hidden" name="aksi" value="revisi">
-                        <button class="btn btn-sm btn-outline-secondary" type="submit">Revisi Invoice</button>
+                        <button class="btn btn-sm btn-outline-secondary" type="submit">Perbarui Invoice</button>
                     </form>
                 </div>
                 <iframe class="mt-3" title="Pratinjau invoice"

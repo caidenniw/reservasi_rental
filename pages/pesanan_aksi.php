@@ -149,6 +149,86 @@ function terbitkanInvoice(array $order, int $revisiKe = 0, ?string $menggantikan
     return ['id' => $invoiceId, 'nomor' => $nomor];
 }
 
+/**
+ * Perbarui ISI invoice yang sudah terbit TANPA mengganti nomor invoice.
+ * Dipakai tombol Revisi. Nomor invoice tetap sama; yang berubah hanya total,
+ * rincian baris, dan snapshot. Pembayaran tidak disentuh (invoice_id sama),
+ * jadi uang yang sudah masuk otomatis tetap menempel.
+ */
+function perbaruiIsiInvoice(array $order, array $invoice): array
+{
+    $db = getDB();
+    $invoiceId = (int) $invoice['id'];
+    $nomor     = (string) $invoice['nomor_invoice'];
+    $total     = (int) $order['grand_total'];
+    $revisiKe  = (int) $invoice['nomor_revisi_ke'] + 1;
+
+    $catatan = 'Pesanan ' . $order['nomor_order'] . ' - ' . $order['nama_pesanan']
+             . ($revisiKe > 0 ? ' | diperbarui ' . $revisiKe . 'x' : '');
+    $custSnap = json_encode([
+        'nama'   => $order['nama_pesanan'],
+        'pic'    => $order['nama_pic'],
+        'hp'     => $order['hp_pic'],
+        'alamat' => $order['customer_alamat'] ?? '',
+        'email'  => $order['customer_email'] ?? '',
+    ], JSON_UNESCAPED_UNICODE);
+    $orderSnap = json_encode([
+        'nomor_order' => $order['nomor_order'],
+        'kota' => $order['kota'],
+        'wilayah' => $order['wilayah_pelayanan'],
+        'tgl_mulai' => $order['tgl_mulai'],
+        'tgl_finish' => $order['tgl_finish'],
+        'jumlah_hari' => $order['jumlah_hari'],
+        'standby_point' => $order['standby_point'],
+        'flight' => $order['flight'],
+        'jam' => $order['jam'],
+        'jam_koordinasi' => $order['jam_koordinasi'],
+        'partner' => $order['partner_nama'] ?? '',
+        'include' => implode('+', array_map(fn($x) => $x['nama'], $order['includes'])),
+    ], JSON_UNESCAPED_UNICODE);
+
+    $st = $db->prepare('UPDATE invoices SET total = ?, nomor_revisi_ke = ?, customer_snapshot = ?, order_snapshot = ?, catatan = ? WHERE id = ?');
+    $st->bind_param('iisssi', $total, $revisiKe, $custSnap, $orderSnap, $catatan, $invoiceId);
+    $st->execute();
+
+    /* ganti rincian baris supaya cocok dengan data order terbaru */
+    $del = $db->prepare('DELETE FROM invoice_items WHERE invoice_id = ?');
+    $del->bind_param('i', $invoiceId);
+    $del->execute();
+
+    $ins = $db->prepare('INSERT INTO invoice_items (invoice_id, no, keterangan, driver, tanggal_pakai, rute, harga_hari, total_hari, total_harga)
+                         VALUES (?,?,?,?,?,?,?,?,?)');
+    $urut = 0;
+    $incTeks = implode(' + ', array_map(fn($x) => $x['nama'], $order['includes']));
+    foreach ($order['items'] as $it) {
+        $urut++;
+        $keterangan = $it['nama_unit'] . "\n" . $it['nopol'];
+        if ($incTeks !== '') $keterangan .= "\nInclude: " . $incTeks;
+        $driver = (string) ($it['nama_driver'] ?: '');
+        $tanggal = formatRentang((string) $order['tgl_mulai'], (string) $order['tgl_finish']);
+        $rute = labelWilayah($order['wilayah_pelayanan']) . ' ' . $order['kota'];
+        if (!empty($order['tujuan'])) $rute .= "\n" . $order['tujuan'];
+        if (!empty($order['standby_point'])) $rute .= "\nStandby: " . $order['standby_point'];
+        $hargaHari = (int) $it['harga_jual_per_hari'];
+        $hari = (int) $it['jumlah_hari'];
+        $totalHarga = (int) $it['subtotal_jual'];
+        $ins->bind_param('iissssiii', $invoiceId, $urut, $keterangan, $driver, $tanggal, $rute, $hargaHari, $hari, $totalHarga);
+        $ins->execute();
+    }
+    foreach ($order['biaya'] as $b) {
+        $urut++;
+        $keterangan = (string) $b['nama'];
+        $kosong = '';
+        $hargaHari = (int) $b['nominal'];
+        $hari = 1;
+        $totalHarga = (int) $b['nominal'];
+        $ins->bind_param('iissssiii', $invoiceId, $urut, $keterangan, $kosong, $kosong, $kosong, $hargaHari, $hari, $totalHarga);
+        $ins->execute();
+    }
+
+    return ['id' => $invoiceId, 'nomor' => $nomor];
+}
+
 switch ($aksi) {
     case 'status':
         $baru = (string) ($_POST['status_baru'] ?? '');
@@ -170,7 +250,7 @@ switch ($aksi) {
     case 'terbit':
         $aktif = array_values(array_filter($order['invoices'], fn($x) => $x['status'] !== 'batal'));
         if ($aktif) {
-            setFlash('warning', 'Invoice sudah terbit: ' . $aktif[0]['nomor_invoice'] . '. Gunakan tombol Revisi kalau ada yang perlu diubah.');
+            setFlash('warning', 'Invoice sudah terbit: ' . $aktif[0]['nomor_invoice'] . '. Gunakan tombol Perbarui Invoice kalau ada yang perlu diubah (nomor tetap sama).');
             redirect($kembali);
         }
         $invBaru = terbitkanInvoice($order);
@@ -203,38 +283,36 @@ switch ($aksi) {
         $st->bind_param('i', $id);
         $st->execute();
         catatStatus($id, $order['status'], 'invoiced', 'Invoice diterbitkan: ' . $nomor . ($panjar > 0 ? ' (panjar Rp ' . number_format($panjar, 0, ',', '.') . ' otomatis jadi DP)' : ''));
-        setFlash('success', 'Invoice ' . $nomor . ' diterbitkan.' . ($panjar > 0 ? ' Panjar Rp ' . number_format($panjar, 0, ',', '.') . ' otomatis tercatat sebagai DP.' : '') . ' Nomor terkunci - perubahan lewat Revisi.');
+        setFlash('success', 'Invoice ' . $nomor . ' diterbitkan.' . ($panjar > 0 ? ' Panjar Rp ' . number_format($panjar, 0, ',', '.') . ' otomatis tercatat sebagai DP.' : '') . ' Ada perubahan? Pakai Perbarui Invoice (nomor tetap sama).');
         break;
 
     case 'revisi':
         $aktif = array_values(array_filter($order['invoices'], fn($x) => $x['status'] !== 'batal'));
         if (!$aktif) {
-            setFlash('danger', 'Belum ada invoice untuk direvisi.');
+            setFlash('danger', 'Belum ada invoice untuk diperbarui.');
             redirect($kembali);
         }
-        $lama = $aktif[0];
-        $invBaru = terbitkanInvoice($order, (int) $lama['nomor_revisi_ke'] + 1, $lama['nomor_invoice']);
-        $nomorBaru = $invBaru['nomor'];
+        $inv = $aktif[0];
+        $nomor = (string) $inv['nomor_invoice'];
+        $totalLama = (int) $inv['total'];
+        $totalBaru = (int) $order['grand_total'];
 
-        /* uang yang sudah masuk tidak boleh hilang saat nomor invoice diganti:
-           pembayaran ikut pindah ke nomor baru */
-        $mv = $db->prepare('UPDATE payments SET invoice_id = ? WHERE invoice_id = ?');
-        $invBaruId = (int) $invBaru['id'];
-        $lamaId = (int) $lama['id'];
-        $mv->bind_param('ii', $invBaruId, $lamaId);
-        $mv->execute();
-
-        $st = $db->prepare('UPDATE invoices SET status = "batal", replaced_by = ? WHERE id = ?');
-        $st->bind_param('si', $nomorBaru, $lamaId);
-        $st->execute();
+        /* isi invoice diperbarui di tempat: nomor TETAP SAMA (permintaan internal).
+           Pembayaran tidak dipindah karena invoice_id tidak berubah. */
+        perbaruiIsiInvoice($order, $inv);
+        perbaruiInvoice((int) $inv['id'], $id);
 
         $st = $db->prepare('UPDATE orders SET status = "invoiced" WHERE id = ? AND status NOT IN ("paid","reported")');
         $st->bind_param('i', $id);
         $st->execute();
 
-        perbaruiInvoice($invBaruId, $id);
-        catatStatus($id, $order['status'], $order['status'], 'Invoice direvisi: ' . $lama['nomor_invoice'] . ' -> ' . $nomorBaru . ' (pembayaran dipindahkan)');
-        setFlash('success', 'Invoice direvisi. ' . $lama['nomor_invoice'] . ' ditandai batal, nomor baru: ' . $nomorBaru . '. Pembayaran yang sudah masuk ikut dipindahkan.');
+        if ($totalLama !== $totalBaru) {
+            $ubah = 'total ' . rupiah($totalLama) . ' -> ' . rupiah($totalBaru);
+        } else {
+            $ubah = 'rincian/tanggal diperbarui';
+        }
+        catatStatus($id, $order['status'], $order['status'], 'Invoice ' . $nomor . ' diperbarui (nomor tetap): ' . $ubah);
+        setFlash('success', 'Invoice ' . $nomor . ' diperbarui. Nomor invoice TIDAK berubah. ' . ($totalLama !== $totalBaru ? 'Total: ' . rupiah($totalLama) . ' menjadi ' . rupiah($totalBaru) . '. ' : '') . 'Pembayaran yang sudah masuk tetap menempel.');
         break;
 
     case 'bayar':
