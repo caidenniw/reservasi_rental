@@ -1,0 +1,28 @@
+/* Beranda dashboard — penyaring periode + papan status bernilai.
+   Gaya mengikuti tema (aksen merah korporat). Tanpa animasi. */
+
+.periode-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 10px; }
+.periode-chip {
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px;
+    font-size: 12.5px; color: var(--ink-soft); background: var(--surface);
+    text-decoration: none; white-space: nowrap;
+}
+.periode-chip:hover { border-color: var(--primary); color: var(--primary); }
+.periode-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+.periode-label { font-size: 12.5px; color: var(--ink-soft); margin-left: 4px; }
+
+.periode-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; }
+.periode-form label { font-size: 12.5px; color: var(--ink-soft); margin: 0; }
+.periode-form input[type="date"] { max-width: 168px; }
+
+.papan-nilai { display: block; font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.papan-item { flex: 0 0 auto; }
+
+/* batang grafik kini bisa diklik (tautan) */
+.grafik .batang { display: block; text-decoration: none; flex: 0 0 auto; }
+.grafik .batang:hover { opacity: 1; }
+.grafik .batang.dim:hover { background: #dcb1b1; }
+
+/* angka pada kartu ringkasan sejajar rapi */
+.stat-value { font-variant-numeric: tabular-nums; }
+.tabel .num, .ringkas-row span { font-variant-numeric: tabular-nums; }
