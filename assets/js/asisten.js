@@ -23,6 +23,67 @@
             .trim();
     }
 
+    function pisahBidang(teks) {
+        return String(teks || '').split(/\s*[·|]\s*/).filter(function (f) { return f.trim() !== ''; });
+    }
+
+    function nilaiUang(teks) {
+        return /^rp\s?[\d.]+/i.test(String(teks || '').trim());
+    }
+
+    /* Ubah jawaban jadi baris-baris data, bukan paragraf padat.
+       Aturan format diminta lewat prompt: baris rincian diawali "- " dan
+       bagian dipisah " · ". Kalau model tidak mengikuti, tetap tampil apa adanya. */
+    function renderBot(teks) {
+        var wrap = buat('div', 'rna-isi-bot');
+        var baris = String(teks || '').replace(/\r/g, '').split('\n');
+
+        baris.forEach(function (b) {
+            var t = b.trim();
+            if (t === '') return;
+
+            var mButir = t.match(/^(?:[-*•]|\d{1,2}[.)])\s+(.+)$/);
+            if (mButir) {
+                var bidang = pisahBidang(mButir[1]);
+                if (bidang.length > 1) {
+                    var row = buat('div', 'rna-row');
+                    bidang.forEach(function (f, idx) {
+                        var kelas = 'rna-f' + (idx === 0 ? ' rna-f-utama' : '') + (nilaiUang(f) ? ' rna-f-angka' : '');
+                        row.appendChild(buat('span', kelas, f.trim()));
+                    });
+                    wrap.appendChild(row);
+                    return;
+                }
+                var isi = bidang.length ? bidang[0] : mButir[1];
+                var kv1 = isi.match(/^([^:]{3,30}):\s*(.+)$/);
+                if (kv1) {
+                    var w1 = buat('div', 'rna-kv');
+                    w1.appendChild(buat('span', 'rna-k', kv1[1]));
+                    w1.appendChild(buat('span', 'rna-v', kv1[2]));
+                    wrap.appendChild(w1);
+                    return;
+                }
+                var p1 = buat('div', 'rna-p', bersihkan(isi));
+                p1.style.paddingLeft = '2px';
+                wrap.appendChild(p1);
+                return;
+            }
+
+            var kv = t.match(/^([^:]{3,30}):\s*(.+)$/);
+            if (kv && !/^https?/i.test(kv[1])) {
+                var w2 = buat('div', 'rna-kv');
+                w2.appendChild(buat('span', 'rna-k', kv[1]));
+                w2.appendChild(buat('span', 'rna-v', kv[2]));
+                wrap.appendChild(w2);
+                return;
+            }
+
+            wrap.appendChild(buat('div', 'rna-p', bersihkan(t)));
+        });
+
+        return wrap;
+    }
+
     function kirim(teks, riwayat) {
         var fd = new FormData();
         fd.append('token', cfg.token || '');
@@ -50,7 +111,11 @@
 
         function tambah(kelas, teks, meta) {
             var wrap = buat('div', 'rna-msg ' + kelas);
-            wrap.appendChild(buat('div', null, bersihkan(teks)));
+            if (kelas === 'rna-msg-bot') {
+                wrap.appendChild(renderBot(teks));
+            } else {
+                wrap.appendChild(buat('div', null, bersihkan(teks)));
+            }
             if (meta) wrap.appendChild(buat('div', 'rna-meta', meta));
             body.appendChild(wrap);
             body.scrollTop = body.scrollHeight;

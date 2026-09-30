@@ -11,7 +11,7 @@ $judulHalaman = 'Asisten Data';
 $menuAktif = 'asisten';
 include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/asisten.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/asisten.css?v=20260930b">
 <?php if (!$siap): ?>
     <div class="alert alert-warning">
         Asisten belum aktif: kunci API Gemini belum diisi di <b>config/asisten.local.php</b>.
@@ -46,7 +46,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-    <script src="<?= BASE_URL ?>/assets/js/asisten.js?v=20260930a"></script>
+    <script src="<?= BASE_URL ?>/assets/js/asisten.js?v=20260930b"></script>
 <?php endif; ?>
 <?php
 $tanpaAsistenWidget = true; /* widget mengambang tidak perlu di halaman ini */

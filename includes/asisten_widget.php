@@ -8,7 +8,7 @@
 require_once __DIR__ . '/asisten_lib.php';
 
 if (empty($tanpaAsistenWidget)) : ?>
-    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/asisten.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/asisten.css?v=20260930b">
     <?php if (asistenSiap()): ?>
         <script>window.RN_ASISTEN = { base: "<?= BASE_URL ?>", token: "<?= asistenToken() ?>" };</script>
 
@@ -32,6 +32,6 @@ if (empty($tanpaAsistenWidget)) : ?>
             </form>
         </div>
 
-        <script src="<?= BASE_URL ?>/assets/js/asisten.js?v=20260930a"></script>
+        <script src="<?= BASE_URL ?>/assets/js/asisten.js?v=20260930b"></script>
     <?php endif; ?>
 <?php endif; ?>

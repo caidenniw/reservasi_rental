@@ -365,7 +365,18 @@ function asistenTanya(string $tanya, array $riwayat = []): array
         . "4. Kamu hanya bisa MEMBACA data. Kalau diminta mengubah/menghapus/membuat data, tolak dengan sopan dan arahkan ke menu yang sesuai.\n"
         . "5. Uang ditulis format Rp 1.234.567. Tanggal ditulis 30-09-2026.\n"
         . "6. Bahasa Indonesia, ringkas dan langsung ke inti, tanpa emoji, tanpa basa-basi berlebihan.\n"
-        . "7. Kalau jawabannya berupa daftar, pakai daftar bernomor singkat; sebutkan angka kunci (jumlah, sisa tagihan).\n\n"
+        . "7. Kalau jawabannya berupa daftar, pakai daftar bernomor singkat; sebutkan angka kunci (jumlah, sisa tagihan).\n"
+        . "8. FORMAT JAWABAN (wajib, supaya rapi di layar sempit):\n"
+        . "   - Mulai dengan 1 kalimat inti yang memuat angka kunci. Contoh: \"Ada 1 pesanan berjalan hari ini.\"\n"
+        . "   - Kalau ada rincian, tulis SETIAP data pada satu baris sendiri, diawali \"- \", dengan urutan tetap:\n"
+        . "     NOMOR ORDER · TANGGAL · NAMA PESANAN · STATUS · Rp NILAI\n"
+        . "     Setiap bagian dipisahkan \" · \" (spasi, titik tengah, spasi). Maksimal 6 baris rincian.\n"
+        . "     Kalau datanya lebih dari 6, tambahkan baris terakhir: \"dan N data lain - buka menu Data Pesanan & Faktur\".\n"
+        . "   - Untuk invoice pakai urutan: NOMOR INVOICE · PESANAN · JATUH TEMPO · SISA Rp NILAI\n"
+        . "   - Untuk ketersediaan unit: baris pertama langsung jawab BEBAS / TIDAK BEBAS, lalu baris rincian bila ada.\n"
+        . "   - JANGAN memakai tanda bintang, tanda pagar, tabel markdown, atau emoji.\n"
+        . "   - Jangan mengulang-ulang judul konteks; langsung ke isi. Hindari kalimat pembuka seperti \"Berikut adalah\".\n"
+        . "   - Kalau menolak permintaan atau data tidak ada, cukup 1-2 kalimat.\n\n"
         . "KONTEKS DATA:\n" . $konteks;
 
     $models = array_values(array_filter(array_merge(

@@ -12,8 +12,8 @@
 
 .rna-panel {
     position: fixed; right: 22px; bottom: 78px; z-index: 1056;
-    width: 390px; max-width: calc(100vw - 32px);
-    max-height: min(620px, calc(100vh - 130px));
+    width: 440px; max-width: calc(100vw - 32px);
+    max-height: min(660px, calc(100vh - 130px));
     background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
     box-shadow: 0 12px 32px rgba(16, 24, 40, .16);
     display: none; flex-direction: column; overflow: hidden;
@@ -32,7 +32,21 @@
 .rna-msg-bot { color: var(--ink); }
 .rna-msg-info { color: var(--ink-soft); font-size: 12.5px; }
 .rna-msg-err { color: var(--danger); }
-.rna-meta { font-size: 11px; color: var(--ink-soft); margin-top: 4px; }
+.rna-meta { font-size: 11px; color: var(--ink-soft); margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line-subtle); }
+
+/* hasil jawaban asisten: baris data yang rapi, bukan paragraf padat */
+.rna-p { margin: 0 0 6px; white-space: pre-wrap; }
+.rna-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px;
+    padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.rna-row:last-child { border-bottom: 0; padding-bottom: 2px; }
+.rna-f { font-size: 12.5px; color: var(--ink-soft); }
+.rna-f-utama { color: var(--ink); font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .2px; }
+.rna-f-angka { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink); }
+.rna-kv { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 4px 0; font-size: 12.5px; border-bottom: 1px dashed var(--line); }
+.rna-kv:last-child { border-bottom: 0; }
+.rna-k { color: var(--ink-soft); flex: 0 0 auto; }
+.rna-v { color: var(--ink); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 
 .rna-form { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); }
 .rna-input { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px;
