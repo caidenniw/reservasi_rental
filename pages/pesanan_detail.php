@@ -147,6 +147,11 @@ include __DIR__ . '/../includes/header.php';
                     <div class="ringkas-row total"><span>Sisa Tagihan</span><span><?= rupiah(max(0, (int) $order['grand_total'] - (int) $order['panjar'])) ?></span></div>
                 <?php endif; ?>
                 <div class="ringkas-row margin"><span>Margin (internal)</span><span><?= rupiah($order['margin']) ?></span></div>
+                <?php if ((int) ($order['laba'] ?? 0) || (int) ($order['insentif'] ?? 0) || (int) ($order['laba_bersih'] ?? 0)): ?>
+                    <div class="ringkas-row"><span>Laba (dari arsip)</span><span><?= rupiah($order['laba'] ?? 0) ?></span></div>
+                    <div class="ringkas-row"><span>Insentif (2,75%)</span><span><?= rupiah($order['insentif'] ?? 0) ?></span></div>
+                    <div class="ringkas-row total"><span>Laba Bersih</span><span><?= rupiah($order['laba_bersih'] ?? 0) ?></span></div>
+                <?php endif; ?>
             </div>
             <?php if ((int) ($order['panjar'] ?? 0) > 0): ?>
                 <div class="form-text mt-2">Panjar dari form otomatis jadi DP saat Terbitkan Invoice — tidak perlu input lagi di bawah.</div>

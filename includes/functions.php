@@ -175,16 +175,28 @@ function mapAsalUser(string $raw): array
     $k = strtolower(trim($raw));
     $k = preg_replace('/\s+/', '', $k);
     // normalisasi variasi penulisan
-    if ($k === 'corp' || $k === 'co' || $k === 'corporation') return ['tipe' => 'corporate', 'sumber' => 'wa', 'raw' => $raw];
+    if ($k === 'corp' || $k === 'co' || $k === 'corporate' || $k === 'corporation') return ['tipe' => 'corporate', 'sumber' => 'wa', 'raw' => $raw];
     if ($k === 'apkasi') return ['tipe' => 'corporate', 'sumber' => 'wa', 'raw' => $raw];
     if ($k === 'ro') return ['tipe' => 'RO', 'sumber' => 'wa', 'raw' => $raw];
     if ($k === 'rtr' || $k === 'renttorent' || $k === 'rent-to-rent') return ['tipe' => 'RTR', 'sumber' => 'wa', 'raw' => $raw];
     if ($k === 'ig') return ['tipe' => 'retail', 'sumber' => 'instagram', 'raw' => $raw];
+    if ($k === 'tiktok') return ['tipe' => 'retail', 'sumber' => 'tiktok', 'raw' => $raw];
     if ($k === 'web' || $k === 'website') return ['tipe' => 'retail', 'sumber' => 'website', 'raw' => $raw];
+    if ($k === 'office') return ['tipe' => 'retail', 'sumber' => 'lainnya', 'raw' => $raw];
     if ($k === 'butika') return ['tipe' => 'retail', 'sumber' => 'referral', 'raw' => $raw];
     if ($k === '') return ['tipe' => 'retail', 'sumber' => 'wa', 'raw' => ''];
     // fallback: anggap retail/lainnya tapi raw tetap tercatat
     return ['tipe' => 'retail', 'sumber' => 'lainnya', 'raw' => $raw];
+}
+
+/** Bersihkan nama partner/asal unit: trim, rapatkan spasi, buang tanda '|' di tepi.
+ *  Dipakai saat import supaya varian penulisan yang sama tidak jadi partner ganda. */
+function normalisasiNama(string $s): string
+{
+    $s = trim((string) $s);
+    $s = preg_replace('/\s+/', ' ', $s);
+    $s = trim($s, " \t|");
+    return $s;
 }
 
 /* Daftar Upgrade yang sering muncul di Excel (dipakai datalist di form) */
