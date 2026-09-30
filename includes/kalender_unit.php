@@ -4,6 +4,10 @@
  * HANYA MEMBACA data. Status yang dianggap menempati unit: semua kecuali
  * cancelled, closed, dan draft — sama dengan aturan cekBentrokUnit() di functions.php.
  *
+ * Menampilkan:
+ * - Unit master (merah = terisi, abu = bebas) + label inisial pemesan di kotak merah.
+ * - Unit manual / tidak terpaut master (kuning) supaya jadwalnya tidak hilang.
+ *
  * Pengaturan lewat URL: ?hari=7|14|30  &unit=<cari>  &semua=1
  */
 $db = getDB();
@@ -23,7 +27,7 @@ for ($i = 0; $i < $jumlahHari; $i++) {
 $awal  = $tanggal[0];
 $akhir = $tanggal[count($tanggal) - 1];
 
-/* pemakaian unit pada rentang ini */
+/* pemakaian unit master pada rentang ini */
 $st = $db->prepare("SELECT o.id, o.nomor_order, o.nama_pesanan, o.status, o.tgl_mulai, o.tgl_finish,
                            i.unit_id, i.nopol, i.nama_unit, i.nama_driver
                     FROM order_items i JOIN orders o ON o.id = i.order_id
@@ -45,7 +49,53 @@ foreach ($pakai as $p) {
     }
 }
 
-/* daftar unit yang ditampilkan */
+/* pemakaian unit MANUAL (unit_id NULL: diketik tanpa memilih dari master) */
+$st = $db->prepare("SELECT o.id, o.nomor_order, o.nama_pesanan, o.status, o.tgl_mulai, o.tgl_finish,
+                           i.nama_unit, i.nopol
+                    FROM order_items i JOIN orders o ON o.id = i.order_id
+                    WHERE o.deleted_at IS NULL AND o.status NOT IN ('cancelled','closed','draft')
+                      AND i.unit_id IS NULL
+                      AND NOT (o.tgl_finish < ? OR o.tgl_mulai > ?)
+                    ORDER BY o.tgl_mulai, o.id");
+$st->bind_param('ss', $awal, $akhir);
+$st->execute();
+$manualPakai = $st->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$manual = [];   /* kunci => ['nopol'=>..,'nama_unit'=>..,'hari'=>['Y-m-d'=>[pesanan]]] */
+foreach ($manualPakai as $p) {
+    $nopol = ($p['nopol'] !== null && trim($p['nopol']) !== '' && trim($p['nopol']) !== '-')
+        ? strtoupper(trim($p['nopol'])) : '';
+    $namaUnit = trim((string) $p['nama_unit']);
+    $kunci = $nopol !== '' ? $nopol : ($namaUnit !== '' ? $namaUnit : 'Unit manual');
+    if (!isset($manual[$kunci])) {
+        $manual[$kunci] = ['nopol' => $nopol, 'nama_unit' => $namaUnit, 'hari' => []];
+    }
+    $t1 = max((string) $p['tgl_mulai'], $awal);
+    $t2 = min((string) $p['tgl_finish'], $akhir);
+    for ($t = strtotime($t1); $t <= strtotime($t2); $t += 86400) {
+        $manual[$kunci]['hari'][date('Y-m-d', $t)][] = $p;
+    }
+}
+
+/* ringkasan hari ini */
+$unitHariIni = 0;
+foreach ($jadwal as $uid => $perTanggal) {
+    if (!empty($perTanggal[$hariIni])) $unitHariIni++;
+}
+$manualHariIni = 0;
+foreach ($manual as $m) {
+    if (!empty($m['hari'][$hariIni])) $manualHariIni++;
+}
+$totalUnit = (int) $db->query("SELECT COUNT(*) c FROM units WHERE deleted_at IS NULL")->fetch_assoc()['c'];
+
+/* filter manual bila ada pencarian */
+if ($cari !== '') {
+    $manual = array_filter($manual, function ($m) use ($cari) {
+        return stripos($m['nopol'], $cari) !== false || stripos($m['nama_unit'], $cari) !== false;
+    });
+}
+
+/* daftar unit master yang ditampilkan */
 $batasBaris = 80;
 $unitTampil = [];
 if ($cari !== '') {
@@ -68,13 +118,6 @@ if ($cari !== '') {
                                   ORDER BY nama_unit")->fetch_all(MYSQLI_ASSOC);
     }
 }
-
-/* ringkasan hari ini */
-$unitHariIni = 0;
-foreach ($jadwal as $uid => $perTanggal) {
-    if (!empty($perTanggal[$hariIni])) $unitHariIni++;
-}
-$totalUnit = (int) $db->query("SELECT COUNT(*) c FROM units WHERE deleted_at IS NULL")->fetch_assoc()['c'];
 ?>
 <div class="card-box">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -102,13 +145,14 @@ $totalUnit = (int) $db->query("SELECT COUNT(*) c FROM units WHERE deleted_at IS 
                href="?<?= e(http_build_query(array_merge($_GET, ['unit' => '', 'semua' => 0]))) ?>">Reset</a>
         <?php endif; ?>
         <span class="form-text mb-0">
-            <?= $unitHariIni ?> unit terisi hari ini dari <?= $totalUnit ?> unit terdaftar.
+            <?= $unitHariIni ?> unit terisi hari ini dari <?= $totalUnit ?> unit terdaftar<?= $manualHariIni > 0 ? ' (+ ' . $manualHariIni . ' unit manual)' : '' ?>.
             <span class="kal-legenda"><i class="kal-tanda isi"></i> terisi</span>
+            <span class="kal-legenda"><i class="kal-tanda manual"></i> unit manual</span>
             <span class="kal-legenda"><i class="kal-tanda"></i> bebas</span>
         </span>
     </form>
 
-    <?php if (!$unitTampil): ?>
+    <?php if (!$unitTampil && !$manual): ?>
         <div class="table-kosong">
             <?= $cari !== ''
                 ? 'Tidak ada unit yang cocok dengan pencarian "' . e($cari) . '".'
@@ -146,7 +190,29 @@ $totalUnit = (int) $db->query("SELECT COUNT(*) c FROM units WHERE deleted_at IS 
                                 if (count($isi) > 1) $teks .= ' +' . (count($isi) - 1) . ' pesanan lain'; ?>
                                 <td>
                                     <a class="kal-sel isi" href="<?= BASE_URL ?>/pages/pesanan_detail.php?id=<?= (int) $p0['id'] ?>"
-                                       title="<?= e($teks) ?>">&nbsp;</a>
+                                       title="<?= e($teks) ?>"><?= e(kodePendek($p0['nama_pesanan'])) ?><?= count($isi) > 1 ? '+' : '' ?></a>
+                                </td>
+                            <?php else: ?>
+                                <td><span class="kal-sel"></span></td>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </tr>
+                <?php endforeach; ?>
+
+                <?php foreach ($manual as $mk => $m): ?>
+                    <tr>
+                        <td class="kal-unit">
+                            <a href="<?= BASE_URL ?>/pages/pesanan_list.php?cari=<?= urlencode($mk) ?>"><?= e($m['nopol'] !== '' ? $m['nopol'] : '-') ?></a>
+                            <span class="kal-nama"><?= e($m['nama_unit']) ?><span class="kal-tag-manual">manual</span></span>
+                        </td>
+                        <?php foreach ($tanggal as $t):
+                            $isi = $m['hari'][$t] ?? []; ?>
+                            <?php if ($isi):
+                                $p0 = $isi[0];
+                                $teks = $p0['nomor_order'] . ' - ' . $p0['nama_pesanan'] . ' (' . statusLabel($p0['status']) . ') [unit manual]'; ?>
+                                <td>
+                                    <a class="kal-sel manual" href="<?= BASE_URL ?>/pages/pesanan_detail.php?id=<?= (int) $p0['id'] ?>"
+                                       title="<?= e($teks) ?>"><?= e(kodePendek($p0['nama_pesanan'])) ?></a>
                                 </td>
                             <?php else: ?>
                                 <td><span class="kal-sel"></span></td>
@@ -158,7 +224,8 @@ $totalUnit = (int) $db->query("SELECT COUNT(*) c FROM units WHERE deleted_at IS 
             </table>
         </div>
         <div class="form-text mt-2">
-            Klik kotak merah untuk membuka pesanan yang menempati unit pada tanggal tersebut.
+            Kotak <b>merah</b> = unit terisi, <b>kuning</b> = unit manual (diketik tanpa memilih master),
+            abu = bebas. Klik kotak berwarna untuk membuka pesanannya. Huruf di kotak = inisial pemesan.
             <?php if (!$tampilSemua && $cari === ''): ?>
                 Yang ditampilkan hanya unit yang punya jadwal pada rentang ini.
             <?php elseif ($tampilSemua): ?>

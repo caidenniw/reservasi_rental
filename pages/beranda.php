@@ -160,7 +160,7 @@ $judulHalaman = 'Beranda';
 $menuAktif = 'beranda';
 include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/beranda.css?v=20260930c">
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/beranda.css?v=20260930d">
 <div class="card-box">
     <h2 class="card-title">Ringkasan periode</h2>
     <div class="periode-bar">

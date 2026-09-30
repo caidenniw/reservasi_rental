@@ -189,6 +189,25 @@ function mapAsalUser(string $raw): array
     return ['tipe' => 'retail', 'sumber' => 'lainnya', 'raw' => $raw];
 }
 
+/** Inisial pendek nama pemesan untuk label kotak di papan ketersediaan unit.
+ *  Contoh: "PT Bank Mandiri (Persero) Tbk" -> "BM", "TD Corporation" -> "TD",
+ *  "Kabupaten Purwakarta" -> "P". */
+function kodePendek(string $nama): string
+{
+    $nama = trim($nama);
+    $nama = preg_replace('/\b(PT|CV|UD|RS|Kab|Kota|Kabupaten|Dinas|BPJS|Kementerian|Kementrian)\b\.?\s*/i', '', $nama);
+    $words = preg_split('/\s+/', $nama);
+    $k = '';
+    foreach ($words as $w) {
+        $w = preg_replace('/[^A-Za-z]/', '', $w); // buang tanda kurung, titik, dll
+        if ($w === '') continue;
+        $k .= mb_strtoupper(mb_substr($w, 0, 1));
+        if (mb_strlen($k) >= 2) break;
+    }
+    if ($k === '') $k = mb_strtoupper(mb_substr(preg_replace('/[^A-Za-z]/', '', $nama), 0, 2));
+    return $k;
+}
+
 /** Bersihkan nama partner/asal unit: trim, rapatkan spasi, buang tanda '|' di tepi.
  *  Dipakai saat import supaya varian penulisan yang sama tidak jadi partner ganda. */
 function normalisasiNama(string $s): string
