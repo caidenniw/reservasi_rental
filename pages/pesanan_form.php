@@ -346,13 +346,27 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
 
     <div class="card-box">
         <div class="d-flex flex-wrap gap-3 align-items-end">
+            <?php
+            /* Status yang boleh dipilih dari form ini = status operasional harian.
+               Status tingkat dokumen (Invoice Terbit, Lunas, Masuk Laporan, Batal, Ditutup)
+               hanya berubah lewat aksi terbitkan invoice / catat pembayaran / batalkan pesanan,
+               supaya status pesanan tidak pernah turun sendiri saat data disimpan ulang. */
+            $statusForm = ['draft', 'inquiry', 'quoted', 'waiting_dp', 'booked', 'in_trip', 'completed'];
+            $statusTerkunci = $order && !in_array((string) $order['status'], $statusForm, true);
+            ?>
             <div style="min-width:220px">
                 <label class="form-label" for="status">Status Pesanan</label>
+                <?php if ($statusTerkunci): ?>
+                    <div class="form-control bg-light mono" style="cursor:not-allowed"><?= e(statusLabel($order['status'])) ?></div>
+                    <input type="hidden" name="status" value="<?= e($order['status']) ?>">
+                    <div class="form-text">Status ini mengikuti dokumen invoice/pembayaran, jadi tidak diubah dari sini. Perubahannya lewat tombol <b>Perbarui Invoice</b> atau <b>Batalkan Pesanan</b> di halaman detail.</div>
+                <?php else: ?>
                 <select class="form-select" id="status" name="status">
-                    <?php foreach (['draft', 'inquiry', 'quoted', 'waiting_dp', 'booked', 'in_trip', 'completed'] as $s): ?>
+                    <?php foreach ($statusForm as $s): ?>
                         <option value="<?= $s ?>" <?= fval($o, 'status', 'booked') === $s ? 'selected' : '' ?>><?= e(statusLabel($s)) ?></option>
                     <?php endforeach; ?>
                 </select>
+                <?php endif; ?>
             </div>
             <div class="baris-aksi">
                 <button type="submit" name="aksi" value="simpan" class="btn btn-primary btn-sm"><?= $order ? 'Simpan Perubahan' : 'Simpan Pesanan' ?></button>

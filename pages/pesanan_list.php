@@ -185,7 +185,7 @@ include __DIR__ . '/../includes/header.php';
                             <span class="mono"><?= e($r['nomor_invoice']) ?></span>
                             <div><?= statusBadge((string) $r['inv_status']) ?></div>
                         <?php else: ?>
-                            <span class="muted">belum terbit</span>
+                            <span class="muted"><?= $r['status'] === 'paid' ? 'tidak ada — data historis' : 'belum terbit' ?></span>
                         <?php endif; ?>
                     </td>
                     <td class="num"><?= rupiah($r['grand_total'], false) ?></td>

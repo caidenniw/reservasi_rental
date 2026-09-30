@@ -21,9 +21,15 @@ $panjar       = angka($_POST['panjar'] ?? 0);
 $tgl_mulai    = trim((string) ($_POST['tgl_mulai'] ?? ''));
 $tgl_finish   = trim((string) ($_POST['tgl_finish'] ?? ''));
 $jumlah_hari  = hitungHari($tgl_mulai, $tgl_finish);
+/* Status yang boleh datang dari form pesanan = status operasional harian saja.
+   Status tingkat dokumen (invoiced/paid/reported/cancelled/closed) hanya berubah
+   lewat aksi invoice / catat pembayaran / batalkan pesanan - bukan lewat simpan form. */
+$statusFormSafe = ['draft', 'inquiry', 'quoted', 'waiting_dp', 'booked', 'in_trip', 'completed'];
 $status       = (string) ($_POST['status'] ?? 'booked');
 if ($aksi === 'draft') {
     $status = 'draft';
+} elseif (!in_array($status, $statusFormSafe, true)) {
+    $status = 'booked';
 }
 
 $errors = [];
@@ -108,6 +114,19 @@ if (!$items) {
     $errors[] = 'Minimal satu unit harus diisi (nama unit + nomor polisi).';
 }
 
+/* ---- panjar tidak boleh melebihi total tagihan (dihitung dari input yang dikirim) ---- */
+$totalJualTmp = 0;
+foreach ($items as $itTmp) $totalJualTmp += (int) $itTmp['subtotal_jual'];
+$incTmp = 0;
+foreach (($_POST['include_id'] ?? []) as $iidTmp) $incTmp += angka($_POST['include_biaya'][(int) $iidTmp] ?? 0);
+$biayaTmp = 0;
+foreach (($_POST['biaya_nominal'] ?? []) as $nomTmp) $biayaTmp += angka($nomTmp);
+$grandTmp = $totalJualTmp + $incTmp + $biayaTmp;
+if ($panjar > 0 && $grandTmp > 0 && $panjar > $grandTmp) {
+    $errors[] = 'Panjar Rp ' . number_format($panjar, 0, ',', '.') . ' melebihi total tagihan Rp '
+              . number_format($grandTmp, 0, ',', '.') . '. Periksa nominal panjar atau harga/hari unitnya.';
+}
+
 /* ---------------- bentrok jadwal unit ---------------- */
 if ($items && $status !== 'draft' && $tgl_mulai && $tgl_finish) {
     foreach ($items as $it) {
@@ -172,6 +191,13 @@ try {
         $st->execute();
         $rowLama = $st->get_result()->fetch_assoc();
         $statusLama = $rowLama['status'] ?? null;
+
+        /* Kunci status tingkat dokumen: kalau status tersimpan di luar daftar form
+           (Invoice Terbit, Lunas, Masuk Laporan, Batal, Ditutup), jangan pernah
+           diturunkan oleh simpan form walau input form mengirim nilai lain. */
+        if ($statusLama !== null && !in_array((string) $statusLama, $statusFormSafe, true)) {
+            $status = (string) $statusLama;
+        }
 
         $fields = [
             ['customer_id', $customerId, 'i'], ['tipe_pelanggan', $tipePelanggan, 's'],

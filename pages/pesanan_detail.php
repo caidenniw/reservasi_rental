@@ -37,6 +37,13 @@ include __DIR__ . '/../includes/header.php';
         klik <b>Perbarui Invoice</b> di bawah supaya isi invoice disesuaikan (nomor invoice tetap sama).
     </div>
 <?php endif; ?>
+<?php if (!$invAktif && $order['status'] === 'paid'): ?>
+    <div class="alert alert-secondary">
+        <b>Data historis.</b> Pesanan ini berasal dari arsip/impor lama dan bertanda <b>Lunas</b> tanpa
+        invoice maupun catatan pembayaran. Tidak dihitung sebagai piutang berjalan dan tidak masuk
+        angka pendapatan dashboard.
+    </div>
+<?php endif; ?>
 <div class="card-box">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
         <div>

@@ -41,18 +41,26 @@ function perbaruiInvoice(int $invoiceId, int $orderId): void
     $u->bind_param('iisi', $dibayar, $sisa, $statusInv, $invoiceId);
     $u->execute();
 
-    /* status order mengikuti pembayaran */
+    /* status order mengikuti pembayaran - DUA ARAH.
+       Naik ke "paid" saat invoice lunas; turun lagi ke "invoiced" kalau pembayaran
+       dihapus/diubah sehingga invoice tidak lagi lunas (sebelumnya order tetap "paid"). */
+    $s = $db->prepare('SELECT status FROM orders WHERE id = ?');
+    $s->bind_param('i', $orderId);
+    $s->execute();
+    $lama = (string) ($s->get_result()->fetch_assoc()['status'] ?? '');
+
     if ($statusInv === 'lunas') {
-        $s = $db->prepare('SELECT status FROM orders WHERE id = ?');
-        $s->bind_param('i', $orderId);
-        $s->execute();
-        $lama = $s->get_result()->fetch_assoc()['status'] ?? '';
         if ($lama !== 'paid') {
             $u = $db->prepare('UPDATE orders SET status = "paid" WHERE id = ?');
             $u->bind_param('i', $orderId);
             $u->execute();
             catatStatus($orderId, $lama, 'paid', 'Invoice lunas');
         }
+    } elseif ($lama === 'paid') {
+        $u = $db->prepare('UPDATE orders SET status = "invoiced" WHERE id = ?');
+        $u->bind_param('i', $orderId);
+        $u->execute();
+        catatStatus($orderId, 'paid', 'invoiced', 'Invoice tidak lagi lunas (pembayaran dihapus/diubah)');
     }
 }
 
@@ -372,11 +380,27 @@ switch ($aksi) {
         break;
 
     case 'batal':
+        $alasan = trim((string) ($_POST['alasan'] ?? '')) ?: 'Dibatalkan';
+        /* Invoice aktif ikut ditandai batal supaya tidak lagi dihitung sebagai tagihan
+           di dashboard. Catatan pembayaran TIDAK dihapus - uang yang sudah masuk tetap
+           tercatat sebagai riwayat. */
+        $invAktifBatal = array_values(array_filter($order['invoices'], fn($x) => $x['status'] !== 'batal'));
+        $nomorDibatalkan = [];
+        foreach ($invAktifBatal as $ivBatal) {
+            $ivId = (int) $ivBatal['id'];
+            $u = $db->prepare('UPDATE invoices SET status = "batal", sisa = 0 WHERE id = ?');
+            $u->bind_param('i', $ivId);
+            $u->execute();
+            $nomorDibatalkan[] = (string) $ivBatal['nomor_invoice'];
+        }
         $st = $db->prepare('UPDATE orders SET status = "cancelled" WHERE id = ?');
         $st->bind_param('i', $id);
         $st->execute();
-        catatStatus($id, $order['status'], 'cancelled', trim((string) ($_POST['alasan'] ?? '')) ?: 'Dibatalkan');
-        setFlash('success', 'Pesanan dibatalkan.');
+        catatStatus($id, $order['status'], 'cancelled', $alasan
+            . ($nomorDibatalkan ? ' | invoice ditandai batal: ' . implode(', ', $nomorDibatalkan) : ''));
+        setFlash('success', 'Pesanan dibatalkan.' . ($nomorDibatalkan
+            ? ' Invoice ' . implode(', ', $nomorDibatalkan) . ' ikut ditandai batal; catatan pembayaran tetap tersimpan.'
+            : ''));
         break;
 
     case 'hapus':

@@ -20,13 +20,30 @@ $unitKeluar = $q("SELECT COUNT(DISTINCT i.unit_id) c FROM order_items i JOIN ord
                   AND o.status NOT IN ('cancelled','closed')
                   AND o.tgl_mulai <= '$hariIni' AND o.tgl_finish >= '$hariIni'");
 
-$inv = $db->query("SELECT COUNT(*) c, COALESCE(SUM(sisa),0) s FROM invoices WHERE status IN ('terbit','sebagian')")->fetch_assoc();
-$pendapatanBulan = (int) ($db->query("SELECT COALESCE(SUM(grand_total),0) t FROM orders
-                                      WHERE deleted_at IS NULL AND status NOT IN ('cancelled','closed')
-                                      AND tgl_mulai BETWEEN '$awalBulan' AND '$akhirBulan'")->fetch_assoc()['t'] ?? 0);
-$marginBulan = (int) ($db->query("SELECT COALESCE(SUM(margin),0) t FROM orders
-                                  WHERE deleted_at IS NULL AND status NOT IN ('cancelled','closed')
-                                  AND tgl_mulai BETWEEN '$awalBulan' AND '$akhirBulan'")->fetch_assoc()['t'] ?? 0);
+/* Invoice aktif: hanya dihitung untuk pesanan yang masih hidup (bukan pesanan batal,
+   bukan pesanan yang sudah dihapus dari daftar). */
+$inv = $db->query("SELECT COUNT(*) c, COALESCE(SUM(i.sisa),0) s FROM invoices i
+                   JOIN orders o ON o.id = i.order_id
+                   WHERE i.status IN ('terbit','sebagian')
+                     AND o.deleted_at IS NULL AND o.status NOT IN ('cancelled','closed')")->fetch_assoc();
+
+/* Pesanan historis impor: bertanda Lunas tetapi tidak punya invoice (dokumen tidak pernah
+   dibuat). Dikeluarkan dari angka pendapatan supaya dashboard tidak melebihkan nilai. */
+$syaratHistoris = "(NOT (o.status = 'paid' AND NOT EXISTS (SELECT 1 FROM invoices iv WHERE iv.order_id = o.id AND iv.status <> 'batal')))";
+
+$pendapatanBulan = (int) ($db->query("SELECT COALESCE(SUM(o.grand_total),0) t FROM orders o
+                                      WHERE o.deleted_at IS NULL AND o.status NOT IN ('cancelled','closed')
+                                      AND $syaratHistoris
+                                      AND o.tgl_mulai BETWEEN '$awalBulan' AND '$akhirBulan'")->fetch_assoc()['t'] ?? 0);
+$marginBulan = (int) ($db->query("SELECT COALESCE(SUM(o.margin),0) t FROM orders o
+                                  WHERE o.deleted_at IS NULL AND o.status NOT IN ('cancelled','closed')
+                                  AND $syaratHistoris
+                                  AND o.tgl_mulai BETWEEN '$awalBulan' AND '$akhirBulan'")->fetch_assoc()['t'] ?? 0);
+
+/* ringkasan pesanan historis lunas-tanpa-invoice (untuk keterangan di kartu) */
+$historis = $db->query("SELECT COUNT(*) c, COALESCE(SUM(o.grand_total),0) t FROM orders o
+                        WHERE o.deleted_at IS NULL AND o.status = 'paid'
+                          AND NOT EXISTS (SELECT 1 FROM invoices iv WHERE iv.order_id = o.id AND iv.status <> 'batal')")->fetch_assoc();
 
 /* papan status */
 $papan = [];
@@ -38,9 +55,10 @@ $grafik = [];
 for ($i = 5; $i >= 0; $i--) {
     $awal = date('Y-m-01', strtotime("-$i month"));
     $akhir = date('Y-m-t', strtotime("-$i month"));
-    $st = $db->prepare("SELECT COUNT(*) c, COALESCE(SUM(grand_total),0) t FROM orders
-                        WHERE deleted_at IS NULL AND status NOT IN ('cancelled','closed')
-                        AND tgl_mulai BETWEEN ? AND ?");
+    $st = $db->prepare("SELECT COUNT(*) c, COALESCE(SUM(o.grand_total),0) t FROM orders o
+                        WHERE o.deleted_at IS NULL AND o.status NOT IN ('cancelled','closed')
+                        AND $syaratHistoris
+                        AND o.tgl_mulai BETWEEN ? AND ?");
     $st->bind_param('ss', $awal, $akhir);
     $st->execute();
     $r = $st->get_result()->fetch_assoc();
@@ -101,6 +119,12 @@ include __DIR__ . '/../includes/header.php';
             <div class="stat-value"><?= $tanpaUnit ?></div>
         </div>
     </div>
+    <?php if ((int) $historis['c'] > 0): ?>
+        <div class="form-text mt-2">
+            Catatan: <?= (int) $historis['c'] ?> pesanan historis (impor arsip) bertanda Lunas tanpa invoice,
+            senilai <?= rupiah($historis['t']) ?>, tidak ikut dihitung sebagai pendapatan karena tidak ada dokumen/tagihannya.
+        </div>
+    <?php endif; ?>
 </div>
 
 <div class="card-box">
