@@ -160,7 +160,7 @@ $judulHalaman = 'Beranda';
 $menuAktif = 'beranda';
 include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/beranda.css?v=20260930a">
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/beranda.css?v=20260930b">
 <div class="card-box">
     <h2 class="card-title">Ringkasan periode</h2>
     <div class="periode-bar">
@@ -278,20 +278,24 @@ include __DIR__ . '/../includes/header.php';
 <div class="row g-3">
     <div class="col-lg-6">
         <div class="card-box">
-            <h2 class="card-title">Tren 6 bulan terakhir (nilai pesanan)</h2>
-            <div class="grafik">
-                <?php foreach ($grafik as $g): ?>
-                    <div class="kolom">
-                        <div class="kolom-nilai"><?= $g['jumlah'] ?> psn</div>
-                        <a class="batang <?= $g['nilai'] === 0 ? 'dim' : '' ?>"
-                           style="height: <?= max(3, (int) round($g['nilai'] / $maxNilai * 100)) ?>%"
-                           title="<?= e($g['bulan']) ?>: <?= rupiah($g['nilai']) ?> - <?= $g['jumlah'] ?> pesanan"
-                           href="<?= BASE_URL ?>/pages/pesanan_list.php?bulan=<?= e($g['kode']) ?>"></a>
-                        <div class="kolom-label"><?= e($g['bulan']) ?></div>
-                    </div>
-                <?php endforeach; ?>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h2 class="card-title mb-0">Tren 6 bulan terakhir</h2>
+                <div class="graf-bar">
+                    <button type="button" class="periode-chip active" data-metrik="nilai">Nilai jual</button>
+                    <button type="button" class="periode-chip" data-metrik="margin">Margin</button>
+                    <button type="button" class="periode-chip" data-metrik="jumlah">Jumlah pesanan</button>
+                    <button type="button" class="periode-chip" data-tipe="bar">Batang</button>
+                    <button type="button" class="periode-chip" data-tipe="line">Garis</button>
+                </div>
             </div>
-            <div class="form-text mt-2">Klik batang untuk membuka daftar pesanan bulan tersebut. Nilai tertinggi: <?= rupiah($maxNilai) ?>.</div>
+            <div class="graf-kotak">
+                <canvas id="kanvasGrafik" data-url="<?= BASE_URL ?>/pages/pesanan_list.php"></canvas>
+            </div>
+            <script type="application/json" id="dataGrafik"><?= json_encode($grafik, JSON_UNESCAPED_UNICODE) ?></script>
+            <div class="form-text mt-2">
+                Arahkan kursor untuk melihat rincian nilai, margin, dan jumlah pesanan.
+                Klik batang/titik untuk membuka daftar pesanan bulan tersebut.
+            </div>
         </div>
     </div>
     <div class="col-lg-6">
@@ -320,4 +324,6 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
+<script src="<?= BASE_URL ?>/assets/vendor/chartjs/chart.umd.min.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/beranda_chart.js?v=20260930a"></script>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

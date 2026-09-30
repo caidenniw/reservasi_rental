@@ -26,3 +26,9 @@
 /* angka pada kartu ringkasan sejajar rapi */
 .stat-value { font-variant-numeric: tabular-nums; }
 .tabel .num, .ringkas-row span { font-variant-numeric: tabular-nums; }
+
+/* grafik tren interaktif (Chart.js lokal) */
+.graf-bar { display: flex; flex-wrap: wrap; gap: 6px; }
+.graf-kotak { position: relative; height: 280px; margin-top: 14px; }
+.graf-kotak canvas { width: 100% !important; }
+.graf-kosong { font-size: 12.5px; color: var(--ink-soft); padding: 12px 0; }
