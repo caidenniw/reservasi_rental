@@ -100,6 +100,20 @@ $sidebarSections = [
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($judulHalaman) ?> &middot; <?= e(APP_SUB) ?></title>
+<style>html.rn-restore{visibility:hidden}</style>
+<script>
+/* Supaya tidak "flash ke atas" saat memulihkan posisi scroll:
+   sembunyikan halaman dulu bila ada posisi tersimpan, lalu scroll-keep.js
+   akan memulihkannya dan menampilkan kembali di akhir halaman. */
+if ('scrollRestoration' in history) { try { history.scrollRestoration = 'manual'; } catch (e) {} }
+(function () {
+    try {
+        if (sessionStorage.getItem('rn_scroll:' + location.pathname) !== null) {
+            document.documentElement.classList.add('rn-restore');
+        }
+    } catch (e) {}
+})();
+</script>
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/vendor/bootstrap/bootstrap.min.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/app.css">
 </head>

@@ -25,6 +25,9 @@
                 sessionStorage.removeItem(key);
             }
         } catch (e) {}
+        /* tampilkan kembali halaman (disembunyikan sementara di <head> supaya
+           tidak flash ke atas sebelum posisi scroll dipulihkan) */
+        try { document.documentElement.classList.remove('rn-restore'); } catch (e2) {}
     }
 
     function halamanSama(href) {
@@ -56,4 +59,9 @@
     } else {
         pulihkan();
     }
+
+    /* pengaman: pastikan halaman selalu tampil walau pemulihan gagal */
+    setTimeout(function () {
+        try { document.documentElement.classList.remove('rn-restore'); } catch (e) {}
+    }, 1200);
 })();
