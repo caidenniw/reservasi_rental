@@ -11,7 +11,7 @@ $judulHalaman = 'Asisten Data';
 $menuAktif = 'asisten';
 include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/asisten.css?v=20260930b">
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/asisten.css?v=20260930c">
 <?php if (!$siap): ?>
     <div class="alert alert-warning">
         Asisten belum aktif: kunci API asisten belum diisi di <b>config/asisten.local.php</b>.
