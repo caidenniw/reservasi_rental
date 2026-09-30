@@ -415,7 +415,7 @@ function asistenTanya(string $tanya, array $riwayat = []): array
         $curlErr = curl_error($ch);
         curl_close($ch);
 
-        if ($resp === false) { $error = 'Koneksi ke Gemini gagal: ' . $curlErr; continue; }
+        if ($resp === false) { $error = 'Koneksi ke layanan jawaban gagal: ' . $curlErr; continue; }
         $json = json_decode((string) $resp, true);
         if ($code !== 200) {
             $error = 'HTTP ' . $code . ' dari model ' . $model . ': ' . mb_substr((string) ($json['error']['message'] ?? $resp), 0, 200);

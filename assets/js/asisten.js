@@ -136,7 +136,7 @@
                 c.addEventListener('click', function () { input.value = t; form.dispatchEvent(new Event('submit')); });
                 box.appendChild(c);
             });
-            box.appendChild(buat('div', 'rna-note', 'Asisten hanya membaca data. Pertanyaan dikirim ke layanan Google Gemini untuk dijawab.'));
+            box.appendChild(buat('div', 'rna-note', 'Asisten hanya membaca data. Ada yang ingin dicari?'));
             body.appendChild(box);
         }
 
@@ -152,7 +152,7 @@
                 tunggu.remove();
                 if (res && res.ok) {
                     tambah('rna-msg-bot', res.jawaban,
-                        (res.sumber ? 'Sumber data: ' + res.sumber + ' · ' : '') + 'model ' + (res.model || '-') + ' · ' + (res.detik || '?') + 's');
+                        'Sumber data: ' + (res.sumber || 'ringkasan sistem') + ' · ' + (res.detik || '?') + ' detik');
                     riwayat.push({ role: 'asisten', text: res.jawaban });
                 } else {
                     tambah('rna-msg-err', (res && res.error) || 'Gagal menghubungi asisten.');

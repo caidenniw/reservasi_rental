@@ -47,7 +47,7 @@ if (count($_SESSION['asisten_hits']) >= 40) {
 $_SESSION['asisten_hits'][] = $kini;
 
 if (!asistenSiap()) {
-    jawab(['ok' => false, 'error' => 'Asisten belum aktif: kunci API Gemini belum diisi di config/asisten.local.php.'], 503);
+    jawab(['ok' => false, 'error' => 'Asisten belum aktif: kunci API asisten belum diisi di config/asisten.local.php.'], 503);
 }
 
 $riwayat = [];

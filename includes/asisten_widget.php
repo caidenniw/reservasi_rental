@@ -32,6 +32,6 @@ if (empty($tanpaAsistenWidget)) : ?>
             </form>
         </div>
 
-        <script src="<?= BASE_URL ?>/assets/js/asisten.js?v=20260930b"></script>
+        <script src="<?= BASE_URL ?>/assets/js/asisten.js?v=20260930d"></script>
     <?php endif; ?>
 <?php endif; ?>

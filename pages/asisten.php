@@ -14,7 +14,7 @@ include __DIR__ . '/../includes/header.php';
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/asisten.css?v=20260930b">
 <?php if (!$siap): ?>
     <div class="alert alert-warning">
-        Asisten belum aktif: kunci API Gemini belum diisi di <b>config/asisten.local.php</b>.
+        Asisten belum aktif: kunci API asisten belum diisi di <b>config/asisten.local.php</b>.
         Hubungi Caai / admin sistem untuk mengaktifkannya.
     </div>
 <?php else: ?>
@@ -39,14 +39,14 @@ include __DIR__ . '/../includes/header.php';
             </div>
 
             <div class="rna-note mt-2">
-                Pertanyaan yang kamu kirim diproses oleh layanan Google Gemini. Jangan menuliskan data
-                pribadi yang tidak perlu. Jawaban selalu berdasarkan data sistem &mdash; kalau datanya tidak ada,
-                asisten akan bilang tidak ada.
+                Asisten hanya membaca data sistem &mdash; tidak bisa membuat, mengubah, atau menghapus apa pun.
+                Tulis pertanyaan seperti kamu bertanya ke rekan kerja. Kalau datanya tidak ada, asisten akan
+                bilang tidak ada dan menunjukkan menu yang tepat untuk mencarinya.
             </div>
         </div>
     </div>
 
-    <script src="<?= BASE_URL ?>/assets/js/asisten.js?v=20260930b"></script>
+    <script src="<?= BASE_URL ?>/assets/js/asisten.js?v=20260930d"></script>
 <?php endif; ?>
 <?php
 $tanpaAsistenWidget = true; /* widget mengambang tidak perlu di halaman ini */
