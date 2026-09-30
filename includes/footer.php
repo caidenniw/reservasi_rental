@@ -48,6 +48,7 @@ document.addEventListener('keydown', function(ev) {
     if (ev.key === 'Escape') rnTutupSidebarMobile();
 });
 </script>
+<script src="<?= BASE_URL ?>/assets/vendor/htmx/htmx.min.js"></script>
 <script src="<?= BASE_URL ?>/assets/js/scroll-keep.js?v=20260930b"></script>
 <?php require __DIR__ . '/asisten_widget.php'; ?>
 </body>
