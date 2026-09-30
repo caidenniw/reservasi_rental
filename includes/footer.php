@@ -48,5 +48,6 @@ document.addEventListener('keydown', function(ev) {
     if (ev.key === 'Escape') rnTutupSidebarMobile();
 });
 </script>
+<?php require __DIR__ . '/asisten_widget.php'; ?>
 </body>
 </html>

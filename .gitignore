@@ -2,3 +2,4 @@ assets/uploads/*
 !assets/uploads/.gitkeep
 /vendor/
 composer.lock
+/config/asisten.local.php
