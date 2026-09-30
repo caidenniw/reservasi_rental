@@ -32,3 +32,27 @@
 .graf-kotak { position: relative; height: 280px; margin-top: 14px; }
 .graf-kotak canvas { width: 100% !important; }
 .graf-kosong { font-size: 12.5px; color: var(--ink-soft); padding: 12px 0; }
+
+/* papan ketersediaan unit */
+.kal-wrap { overflow-x: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; }
+.kal-tabel { border-collapse: collapse; width: 100%; font-size: 11.5px; }
+.kal-tabel th, .kal-tabel td { border-bottom: 1px solid var(--line-subtle); padding: 3px 4px; text-align: center; }
+.kal-tabel thead th {
+    background: var(--surface); color: var(--ink-soft); font-weight: 600; font-size: 11px;
+    position: sticky; top: 0; z-index: 2; white-space: nowrap;
+}
+.kal-tabel thead th span { display: block; font-weight: 400; font-size: 9.5px; }
+.kal-tabel th.kal-libur { color: var(--primary); background: var(--primary-subtle); }
+.kal-tabel td.kal-unit, .kal-tabel th.kal-unit {
+    text-align: left; position: sticky; left: 0; background: var(--surface); z-index: 1;
+    min-width: 168px; white-space: nowrap; border-right: 1px solid var(--line);
+}
+.kal-tabel th.kal-unit { z-index: 3; }
+.kal-tabel tr:last-child td { border-bottom: 0; }
+.kal-nama { display: block; color: var(--ink-soft); font-size: 10.5px; }
+.kal-sel { display: block; width: 100%; min-width: 20px; height: 18px; border-radius: 4px; background: var(--line-subtle); }
+.kal-sel.isi { background: var(--primary); opacity: .85; }
+.kal-sel.isi:hover { opacity: 1; }
+.kal-legenda { display: inline-flex; align-items: center; gap: 4px; margin-left: 10px; font-size: 11.5px; color: var(--ink-soft); }
+.kal-tanda { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: var(--line-subtle); }
+.kal-tanda.isi { background: var(--primary); opacity: .85; }

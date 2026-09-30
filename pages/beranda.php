@@ -160,7 +160,7 @@ $judulHalaman = 'Beranda';
 $menuAktif = 'beranda';
 include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/beranda.css?v=20260930b">
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/beranda.css?v=20260930c">
 <div class="card-box">
     <h2 class="card-title">Ringkasan periode</h2>
     <div class="periode-bar">
@@ -324,6 +324,8 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
+<?php require __DIR__ . '/../includes/kalender_unit.php'; ?>
+
 <script src="<?= BASE_URL ?>/assets/vendor/chartjs/chart.umd.min.js"></script>
 <script src="<?= BASE_URL ?>/assets/js/beranda_chart.js?v=20260930a"></script>
 <?php include __DIR__ . '/../includes/footer.php'; ?>
