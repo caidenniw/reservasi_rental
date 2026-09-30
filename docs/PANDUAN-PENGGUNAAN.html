@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panduan Penggunaan — Dashboard Reservasi 1000 Nusantara Rental</title>
+<style>
+:root { --merah: #e62e2e; --ink: #1a1c21; --soft: #6b7280; --garis: #e9ecef; }
+* { box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, Arial, sans-serif; color: var(--ink);
+       font-size: 13px; line-height: 1.55; margin: 0; }
+main { max-width: 190mm; margin: 0 auto; padding: 0; }
+h1 { font-size: 22px; margin: 0 0 6px; color: var(--merah); }
+h2 { font-size: 16px; margin: 22px 0 8px; padding-bottom: 4px;
+     border-bottom: 2px solid var(--merah); color: var(--merah); }
+h3 { font-size: 14px; margin: 14px 0 6px; }
+p { margin: 6px 0; }
+ul, ol { margin: 6px 0 6px 0; padding-left: 22px; }
+li { margin: 3px 0; }
+code { font-family: Consolas, monospace; font-size: 12px; background: #f5f6f8;
+       padding: 1px 5px; border-radius: 4px; }
+pre { background: #f5f6f8; border: 1px solid var(--garis); border-radius: 8px;
+      padding: 10px 12px; font-family: Consolas, monospace; font-size: 12px;
+      white-space: pre-wrap; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+th, td { border: 1px solid var(--garis); padding: 6px 8px; text-align: left;
+         vertical-align: top; font-size: 12.5px; }
+th { background: #fafafa; font-weight: 600; }
+hr { border: 0; border-top: 1px solid var(--garis); margin: 14px 0; }
+strong { color: var(--ink); }
+a { color: var(--merah); text-decoration: none; }
+.page-break { page-break-before: always; }
+
+@page { size: A4; margin: 16mm 15mm; }
+h2, h3 { page-break-after: avoid; }
+tr, li, pre { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+<main>
+<h1>Panduan Penggunaan — Dashboard Reservasi 1000 Nusantara Rental</h1>
+<p>Versi: September 2026. Dokumen ini menjelaskan cara mengoperasikan sistem reservasi
+mobil + driver dari nol, ditujukan untuk admin yang baru pertama kali memakai sistem.
+Baca berurutan, terutama bagian "Alur Kerja Utama" dan "Status Pesanan".</p>
+<hr />
+<h2>1. Cara Masuk</h2>
+<ol>
+<li>Buka browser, akses salah satu alamat berikut (mesin Laragon harus menyala):
+   - http://localhost/rentalnusantara/
+   - http://127.0.0.1:8081/</li>
+<li>Muncul halaman "Masuk". Isi:
+   - Username: admin
+   - Password: admin123
+   - <strong>Catatan penting:</strong> ini akun bawaan. Segera ganti password lewat menu
+     <strong>Ubah Password</strong> di grup SISTEM &amp; TOOLS begitu sistem mulai dipakai rutin.</li>
+<li>Klik <strong>Masuk</strong>. Kamu akan mendarat di Beranda.</li>
+</ol>
+<p>Untuk keluar, klik <strong>Keluar Sistem</strong> di bagian bawah sidebar kiri.</p>
+<h2>2. Peta Menu (Sidebar Kiri)</h2>
+<table>
+<thead>
+<tr>
+<th>Grup</th>
+<th>Menu</th>
+<th>Fungsi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MENU UTAMA</td>
+<td>Dashboard</td>
+<td>Beranda, ringkasan &amp; grafik</td>
+</tr>
+<tr>
+<td>MENU UTAMA</td>
+<td>Input Pesanan</td>
+<td>Membuat pesanan baru</td>
+</tr>
+<tr>
+<td>MENU UTAMA</td>
+<td>Data Pesanan &amp; Faktur</td>
+<td>Daftar semua pesanan, cari, filter, export</td>
+</tr>
+<tr>
+<td>DATA MASTER</td>
+<td>Armada Mobil</td>
+<td>Data unit/mobil</td>
+</tr>
+<tr>
+<td>DATA MASTER</td>
+<td>Data Driver</td>
+<td>Data sopir</td>
+</tr>
+<tr>
+<td>DATA MASTER</td>
+<td>Data Pelanggan</td>
+<td>Data customer</td>
+</tr>
+<tr>
+<td>DATA MASTER</td>
+<td>Partner (Support By)</td>
+<td>Data partner/vendor</td>
+</tr>
+<tr>
+<td>DATA MASTER</td>
+<td>Item Include</td>
+<td>Daftar item include (contoh: sopir, BBM)</td>
+</tr>
+<tr>
+<td>SISTEM &amp; TOOLS</td>
+<td>Asisten Data</td>
+<td>Chat bot tanya data (baca saja)</td>
+</tr>
+<tr>
+<td>SISTEM &amp; TOOLS</td>
+<td>Import Excel (Orderan)</td>
+<td>Impor data pesanan lama dari file Excel</td>
+</tr>
+<tr>
+<td>SISTEM &amp; TOOLS</td>
+<td>Import CSV</td>
+<td>Impor pesanan dari CSV</td>
+</tr>
+<tr>
+<td>SISTEM &amp; TOOLS</td>
+<td>Pengaturan Faktur</td>
+<td>Identitas PT, bank, awalan nomor dokumen</td>
+</tr>
+<tr>
+<td>SISTEM &amp; TOOLS</td>
+<td>Ubah Password</td>
+<td>Ganti kata sandi</td>
+</tr>
+</tbody>
+</table>
+<p>Di pojok kanan atas ada tombol <strong>Pesanan Baru</strong> (jalan pintas ke Input Pesanan)
+dan chip nama admin.</p>
+<hr />
+<h2>3. Alur Kerja Utama (dari terima order sampai lunas)</h2>
+<p>Ringkasnya begini:</p>
+<pre><code>Input Pesanan  -&gt;  Simpan (status Booked)
+      -&gt;  Terbitkan Invoice  (nomor faktur dibuat, panjar otomatis jadi DP)
+      -&gt;  Catat Pembayaran   (DP / pelunasan, sampai sisa = 0)
+      -&gt;  Status jadi Lunas  -&gt;  Cetak Invoice / Lembar Internal
+</code></pre>
+<p>Detail tiap langkah di bawah.</p>
+<h3>3.1 Membuat Pesanan (menu Input Pesanan)</h3>
+<p>Form terdiri dari 3 bagian. Tanda <code>*</code> artinya wajib diisi.</p>
+<p><strong>Bagian 1 — Pelayanan</strong>
+- <strong>Tipe Pelanggan</strong>: Retail (perorangan), Perusahaan/Instansi, Repeat Order (RO),
+  atau RTR (Rent to Rent = biro lain menyewa unit kita).
+- <strong>Wilayah</strong>: Dalam Kota / Luar Kota.
+- <strong>Kota / Lokasi</strong>: wajib. Contoh: "Medan", "Gunung Sitoli (Nias)".
+- <strong>Tujuan / Rute</strong>: opsional, tampil di kolom Rute invoice.
+- <strong>Tanggal Mulai &amp; Selesai</strong>: wajib. <strong>Jumlah Hari dihitung otomatis dan inklusif</strong>
+  (tanggal selesai - tanggal mulai + 1). Contoh: 27 s/d 30 Sept = 4 hari.
+- <strong>Jam / Koordinasi dengan user</strong>: isi jam, atau centang "Koordinasi dengan user".
+- <strong>Standby Point</strong> (mis. Bandara Binaka) dan <strong>Flight</strong> (opsional).</p>
+<p><strong>Bagian 2 — Customer &amp; PIC</strong>
+- <strong>Nama Pesanan / Instansi</strong>: wajib. Kalau nama belum ada di master, sistem otomatis
+  membuatkan data pelanggan baru saat disimpan.
+- <strong>Sumber Order</strong>: WhatsApp / Telepon / Instagram / TikTok / Facebook / Website /
+  Referral / Lainnya.
+- <strong>Nama PIC</strong>, <strong>HP/WA PIC</strong>: penanggung jawab yang dihubungi.
+- <strong>Data Tamu</strong>: internal saja (tidak dicetak di invoice) — mis. "Imigrasi / Lapas".
+- <strong>Keterangan</strong> dan <strong>Asal User (arsip Excel)</strong>: isi "RTR / Corp / RO / Apkasi / IG /
+  Web" kalau ingin menyamakan dengan catatan lama; Tipe &amp; Sumber ikut menyesuaikan.
+- <strong>Handle By</strong>: nama yang menangani. <strong>Catatan Internal</strong>: bebas.</p>
+<p><strong>Bagian 3 — Unit, Driver &amp; Harga</strong>
+- Satu baris = satu mobil. Pilih <strong>Driver</strong> (wajib) dan <strong>Unit</strong>; nama unit, nopol,
+  dan harga otomatis terisi dari master, tapi masih bisa dikoreksi manual.
+- Isi <strong>Harga Modal / Hari</strong> (biaya internal) dan <strong>Harga Jual / Hari</strong> (harga ke
+  customer). <strong>Hari (per unit)</strong> mengikuti jumlah hari pesanan, boleh disesuaikan.
+- <strong>Support By</strong>: partner yang mendukung unit itu (opsional).
+- <strong>+ Tambah Mobil Lain (Rombongan)</strong>: bila satu pesanan pakai lebih dari satu mobil.
+- <strong>Biaya Tambahan</strong>: biaya lain di luar sewa (mis. biaya tol, uang makan sopir).
+- <strong>Include</strong>: item yang disertakan (mis. Sopir, BBM); isi biaya bila dibebankan.
+- <strong>Panjar / DP Awal</strong>: isi bila customer sudah transfer sebelum invoice terbit.
+  Otomatis jadi pembayaran DP saat invoice diterbitkan — tidak perlu diinput dua kali.
+- Ringkasan di bawah menampilkan: Subtotal modal, Subtotal jual, Biaya tambahan,
+  <strong>Total Tagihan</strong>, Panjar, Sisa Tagihan, dan Margin (internal).</p>
+<p><strong>Tombol bawah:</strong>
+- <strong>Simpan Pesanan</strong> — simpan dengan status default <strong>Booked</strong> (atau status yang dipilih).
+- <strong>Simpan Draft</strong> — simpan sebagai Draft (belum final, tidak memblokir jadwal unit).
+- <strong>Batal</strong> — kembali tanpa menyimpan.</p>
+<p>Yang divalidasi sistem: nama pesanan, kota, tanggal wajib; tanggal selesai tidak boleh
+sebelum tanggal mulai; minimal 1 unit (nama + nopol); setiap unit harus punya driver;
+<strong>jadwal unit dicek supaya tidak bentrok</strong> dengan pesanan lain; <strong>panjar tidak boleh
+melebihi total tagihan</strong>.</p>
+<h3>3.2 Melihat &amp; Mengelola Pesanan (menu Data Pesanan &amp; Faktur)</h3>
+<ul>
+<li>Daftar semua pesanan, bisa dicari (nomor order/invoice, nama, PIC, nopol, kota),
+  difilter (status, tipe, bulan, rentang tanggal), diurutkan, dan <strong>Export CSV</strong>.</li>
+<li>Klik <strong>Detail</strong> pada sebuah baris untuk membuka halaman detail pesanan.</li>
+</ul>
+<h3>3.3 Halaman Detail Pesanan</h3>
+<p>Berisi: data pelayanan, customer &amp; PIC, unit &amp; driver, ringkasan biaya, kartu invoice,
+pengubah status, dan riwayat status. Tombol penting:
+- <strong>Ubah Data</strong> — kembali ke form untuk mengubah pesanan.
+- <strong>Salin Teks WA</strong> — teks pesanan siap tempel untuk dikirim ke driver/pelanggan.
+- <strong>Terbitkan Invoice</strong> — membuat faktur (lihat 3.4).
+- <strong>Cetak Invoice / Cetak Lembar Internal</strong> — lihat 3.6.
+- <strong>Perbarui Invoice</strong> — menyesuaikan isi invoice dengan data terbaru (nomor tetap).
+- <strong>Batalkan Pesanan</strong> — membatalkan (invoice ikut ditandai batal).
+- <strong>Hapus</strong> — menyembunyikan pesanan dari daftar (data tetap tersimpan di database).</p>
+<h3>3.4 Invoice</h3>
+<p><strong>Terbitkan Invoice</strong> akan:
+1. Membuat nomor faktur otomatis dengan format <code>1000-INV/{Romawi}/{Cabang}-{Urut}</code>,
+   contoh <code>1000-INV/IX/MDN-24631</code>.
+2. Menetapkan <strong>Jatuh Tempo</strong> (default +7 hari, bisa diubah di Pengaturan Faktur).
+3. Menjadikan <strong>Panjar</strong> otomatis sebagai pembayaran DP.
+4. Mengubah status pesanan menjadi <strong>Invoice Terbit</strong>.</p>
+<p><strong>Catat Pembayaran</strong> (di kartu invoice): isi tanggal bayar, tipe (DP/Pelunasan/Lainnya),
+nominal, metode (Transfer/Cash/QRIS/Lainnya), bank, bukti (foto/PDF), dan catatan.
+- Nominal <strong>tidak boleh melebihi sisa tagihan</strong>.
+- Saat total yang dibayar = total tagihan, invoice jadi <strong>Lunas</strong> dan status pesanan
+  otomatis menjadi <strong>Lunas</strong>.</p>
+<p><strong>Hapus catatan pembayaran</strong> (ikon x di daftar pembayaran): pembayaran dihapus dan
+invoice kembali menjadi Terbit / Dibayar Sebagian; status pesanan ikut turun ke
+Invoice Terbit.</p>
+<h3>3.5 Mengubah Invoice (nomor tetap)</h3>
+<p>Kalau isi pesanan berubah SETELAH invoice terbit (mis. harga atau hari dikoreksi),
+jangan buat invoice baru. Gunakan <strong>Perbarui Invoice</strong>: isi dan total invoice
+disesuaikan dengan data terbaru, <strong>nomor faktur tetap sama</strong>, dan pembayaran yang
+sudah masuk tetap menempel. Ini keputusan internal perusahaan.</p>
+<h3>3.6 Cetak Dokumen</h3>
+<ul>
+<li><strong>Cetak Invoice</strong> = dokumen untuk customer (tanpa harga modal &amp; margin).</li>
+<li><strong>Cetak Lembar Internal</strong> = dokumen internal (menampilkan modal, margin, partner).</li>
+<li>Keduanya siap cetak A4; di halaman detail ada pratinjau langsung.</li>
+</ul>
+<hr />
+<h2>4. Status Pesanan (pahami ini supaya tidak salah alur)</h2>
+<p>Ada 12 status. Dibagi jadi dua kelompok:</p>
+<p><strong>Status operasional (diubah lewat form / tombol Ubah Status):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Arti</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Draft</td>
+<td>Masih rancangan, belum final</td>
+</tr>
+<tr>
+<td>Inquiry</td>
+<td>Baru bertanya, belum ada penawaran</td>
+</tr>
+<tr>
+<td>Penawaran (quoted)</td>
+<td>Sudah diberi harga</td>
+</tr>
+<tr>
+<td>Menunggu DP</td>
+<td>Menunggu uang muka</td>
+</tr>
+<tr>
+<td>Booked</td>
+<td>Sudah dipesan / dijadwalkan</td>
+</tr>
+<tr>
+<td>Sedang Trip</td>
+<td>Mobil sedang dipakai</td>
+</tr>
+<tr>
+<td>Selesai Trip</td>
+<td>Trip selesai, belum ditagih</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Status dokumen (berubah OTOMATIS lewat aksi invoice/pembatalan, bukan dari form):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Kapan terjadi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Invoice Terbit</td>
+<td>Setelah "Terbitkan Invoice"</td>
+</tr>
+<tr>
+<td>Lunas</td>
+<td>Setelah pembayaran memenuhi total tagihan</td>
+</tr>
+<tr>
+<td>Masuk Laporan</td>
+<td>Ditandai admin (lewat Ubah Status)</td>
+</tr>
+<tr>
+<td>Batal</td>
+<td>Setelah "Batalkan Pesanan"</td>
+</tr>
+<tr>
+<td>Ditutup</td>
+<td>Ditandai admin (lewat Ubah Status)</td>
+</tr>
+</tbody>
+</table>
+<p>Aturan penting:
+- Status dokumen <strong>tidak bisa diturunkan lewat form</strong> — sistem sengaja menguncinya
+  supaya pesanan yang sudah ber-invoice/lunas tidak berubah jadi Draft.
+- Status <strong>Lunas</strong> hanya naik saat invoice benar-benar lunas; kalau pembayaran dihapus,
+  status turun kembali ke <strong>Invoice Terbit</strong>.
+- <strong>Batalkan Pesanan</strong> ikut menandai invoice aktif sebagai Batal (sisa jadi 0), tapi
+  catatan pembayaran tetap tersimpan sebagai bukti uang masuk.</p>
+<hr />
+<h2>5. Beranda &amp; Cara Baca Angkanya</h2>
+<p>Beranda terbagi menjadi beberapa bagian:</p>
+<p><strong>Ringkasan periode</strong> — angka yang mengikuti pilihan tanggal (Hari ini / 7 hari /
+Bulan ini / 3 bulan / Tahun ini / Rentang sendiri):
+- Pesanan dalam periode, unit bertugas, <strong>nilai jual</strong>, dan <strong>margin (internal)</strong>.
+- Tabel "Pesanan dalam periode (terbaru 12)" + tombol buka di Data Pesanan.
+- Catatan: pesanan historis impor (Lunas tanpa invoice) TIDAK dihitung sebagai
+  pendapatan.</p>
+<p><strong>Kondisi saat ini</strong> — angka real-time, tidak terpengaruh pilihan periode:
+- Pesanan berjalan hari ini, unit keluar hari ini, invoice belum lunas (dengan total
+  sisa tagihan), dan pesanan yang datanya belum lengkap.</p>
+<p><strong>Papan status</strong> — jumlah dan nilai per status; klik sebuah kotak untuk membuka daftar
+pesanan dengan status itu.</p>
+<p><strong>Tren 6 bulan</strong> — grafik (Chart.js). Bisa ganti ukuran (<strong>Nilai jual / Margin /
+Jumlah pesanan</strong>) dan bentuk (<strong>Batang / Garis</strong>). Arahkan kursor untuk rincian,
+klik batang/titik untuk membuka daftar pesanan bulan itu.</p>
+<p><strong>Pesanan terbaru diinput</strong> — 6 pesanan terakhir yang dimasukkan.</p>
+<p><strong>Ketersediaan unit</strong> — kisi unit x tanggal (7/14/30 hari ke depan). Kotak merah =
+unit terpakai (klik untuk buka detail pesanan), kotak abu = bebas. Ada pencarian unit
+dan opsi "Tampilkan semua unit". Papan ini akan tampak kosong bila belum ada reservasi
+ke depan — itu normal, akan terisi begitu pesanan baru masuk.</p>
+<hr />
+<h2>6. Asisten Data (Chat Bot, baca saja)</h2>
+<ul>
+<li>Buka dari menu <strong>Asisten Data</strong>, atau klik tombol <strong>Asisten</strong> mengambang di kanan
+  bawah halaman mana pun.</li>
+<li>Ketik pertanyaan bahasa biasa, contoh:</li>
+<li>"Pesanan apa saja yang berjalan hari ini?"</li>
+<li>"Invoice mana yang belum lunas dan berapa sisanya?"</li>
+<li>"Unit BK 1261 OOO kosong tanggal 5-7 November 2026?"</li>
+<li>"Rekap nilai pesanan 6 bulan terakhir"</li>
+<li>Asisten <strong>hanya membaca data</strong> — tidak bisa membuat, mengubah, atau menghapus apa pun.
+  Kalau datanya tidak ada, ia bilang tidak ada dan menunjukkan menu yang tepat.</li>
+<li>Batasan: maksimal 40 pertanyaan per 10 menit, tiap pertanyaan maksimal 600 karakter.</li>
+</ul>
+<hr />
+<h2>7. Data Master</h2>
+<p>Data master dipakai supaya saat input pesanan, banyak isian terisi otomatis.</p>
+<ul>
+<li><strong>Armada Mobil</strong>: kode, nama unit, nopol, merek, harga modal/jual default, partner,
+  dan status. Unit yang nonaktif tidak muncul di pilihan.</li>
+<li><strong>Data Driver</strong>: nama, HP, wilayah, SIM, bank/rekening, status (aktif/izin/sakit/
+  nonaktif). Hanya driver "aktif" yang muncul di pilihan.</li>
+<li><strong>Data Pelanggan</strong>: nama pesanan/instansi, tipe, PIC, HP, email, alamat, sumber.</li>
+<li><strong>Partner (Support By)</strong>: nama, tipe (vendor/perantara/owner unit), HP, alamat, bank.</li>
+<li><strong>Item Include</strong>: nama item include dan urutannya; item default otomatis tercentang
+  saat input pesanan baru.</li>
+</ul>
+<p>Hati-hati saat menghapus data master: sistem memakai hapus permanen. Nama unit/nopol/
+driver yang sudah terlanjur dipakai di pesanan lama tetap tersimpan di riwayat pesanan
+itu, jadi riwayat tidak hilang — tetapi dropdown dan laporan master tidak akan
+menampilkan data yang sudah dihapus.</p>
+<h2>8. Import Data Lama</h2>
+<ul>
+<li><strong>Import Excel (Orderan)</strong>: untuk memindahkan data pesanan lama (arsip Excel).
+  Unggah file <code>.xlsx</code> (mis. "Rental Bulan Juli 2026.xlsx"), sistem menampilkan pratinjau,
+  memetakan kolom ke form kita (termasuk Data Tamu, Upgrade, Asal User, Panjar), dan
+  melewati baris duplikat (kriteria: pemesan + nopol + tanggal mulai sama).
+  Data historis yang diimpor otomatis bertanda Lunas/Selesai dan diberi label "data
+  historis" (tidak dihitung sebagai pendapatan beranda).</li>
+<li><strong>Import CSV</strong>: impor sederhana untuk data pesanan berbentuk CSV.</li>
+</ul>
+<h2>9. Pengaturan Faktur</h2>
+<p>Tempat mengisi identitas yang tercetak di invoice: nama PT, brand, tagline, alamat,
+telepon, email, website, Instagram, NPWP, catatan kaki invoice, nama &amp; jabatan
+penandatangan, logo, serta <strong>awalan nomor order (RN)</strong>, <strong>awalan nomor faktur (1000-INV)</strong>,
+<strong>kode cabang (MDN)</strong>, informasi bank, dan <strong>jatuh tempo invoice (hari)</strong>.</p>
+<hr />
+<h2>10. Troubleshooting Ringkas</h2>
+<table>
+<thead>
+<tr>
+<th>Gejala</th>
+<th>Yang perlu dicek</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tidak bisa masuk</td>
+<td>Mesin Laragon menyala? Username/password benar? Ada pesan "terlalu banyak percobaan" (tunggu 60 detik)</td>
+</tr>
+<tr>
+<td>Angka beranda aneh</td>
+<td>Cek pilihan periode; ingat angka "Ringkasan periode" mengikuti tanggal, "Kondisi saat ini" tidak</td>
+</tr>
+<tr>
+<td>Pesanan ditolak saat simpan</td>
+<td>Baca pesan merah: biasanya unit bentrok jadwal, driver belum dipilih, atau panjar melebihi total</td>
+</tr>
+<tr>
+<td>Panjar melebihi total tagihan</td>
+<td>Kecilkan nominal panjar (sistem menolak, tidak memotong diam-diam)</td>
+</tr>
+<tr>
+<td>Invoice tidak bisa dibuat</td>
+<td>Pesanan ini sudah punya invoice aktif — pakai "Perbarui Invoice"</td>
+</tr>
+<tr>
+<td>Nomor faktur "lompat"</td>
+<td>Nomor yang terpakai tidak pernah dipakai ulang (termasuk yang dibatalkan saat uji) — itu wajar</td>
+</tr>
+<tr>
+<td>Asisten tidak muncul / error</td>
+<td>Kunci API belum diisi (config/asisten.local.php) atau kuota habis; hubungi admin sistem</td>
+</tr>
+<tr>
+<td>Grafik tidak muncul</td>
+<td>Cek berkas <code>assets/vendor/chartjs/chart.umd.min.js</code> masih ada</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>11. Catatan untuk Admin Sistem</h2>
+<ul>
+<li>Data saat ini mayoritas arsip Juli 2026 (hasil impor). Sebagian besar berstatus
+  Selesai Trip / Lunas.</li>
+<li>Ada 114 pesanan historis bertanda Lunas tanpa invoice (Rp 722.299.905). Sudah
+  dilabeli dan dikeluarkan dari angka pendapatan. Perlakuan finalnya menunggu
+  keputusan manajemen.</li>
+<li>Beberapa keputusan yang masih menunggu: tanggal 12 baris data susulan, verifikasi
+  1 pesanan bernilai janggal, dan aturan perhitungan laba bersih 5% bila dibutuhkan.</li>
+<li>Seluruh fitur inti (perbaikan alur status, asisten AI, beranda interaktif) sudah
+  terverifikasi dan berjalan. Cadangan kerja tersimpan di git (commit berkala).</li>
+</ul>
+</main>
+</body>
+</html>
