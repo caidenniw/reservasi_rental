@@ -259,11 +259,13 @@ menampilkan data yang sudah dihapus.
 ## 8. Import Data Lama
 
 - **Import Excel (Orderan)**: untuk memindahkan data pesanan lama (arsip Excel).
-  Unggah file `.xlsx` (mis. "Rental Bulan Juli 2026.xlsx"), sistem menampilkan pratinjau,
-  memetakan kolom ke form kita (termasuk Data Tamu, Upgrade, Asal User, Panjar), dan
-  melewati baris duplikat (kriteria: pemesan + nopol + tanggal mulai sama).
-  Data historis yang diimpor otomatis bertanda Lunas/Selesai dan diberi label "data
-  historis" (tidak dihitung sebagai pendapatan beranda).
+  Unggah file `.xlsx`, sistem menampilkan pratinjau, memetakan kolom ke form kita, dan
+  melewati baris duplikat. Data historis otomatis bertanda Lunas/Selesai dan diberi
+  label "data historis" (tidak dihitung sebagai pendapatan beranda).
+- **Hasil import setia-sheet** (Juli 2026): jumlah hari mengikuti kolom "Total Hari",
+  total tagihan = kolom "Total (Rp)", pengeluaran = "TOTAL PENGELUARAN", dan disimpan
+  juga **Laba**, **Insentif (2,75%)**, dan **Laba Bersih** (tampil di Ringkasan Biaya
+  pada halaman detail pesanan).
 - **Import CSV**: impor sederhana untuk data pesanan berbentuk CSV.
 
 ## 9. Pengaturan Faktur
@@ -292,12 +294,16 @@ penandatangan, logo, serta **awalan nomor order (RN)**, **awalan nomor faktur (1
 
 ## 11. Catatan untuk Admin Sistem
 
-- Data saat ini mayoritas arsip Juli 2026 (hasil impor). Sebagian besar berstatus
+- Data saat ini hasil impor bersih dari arsip Juli 2026: 495 pesanan aktif
+  (494 hasil impor + 1 pesanan manual yang punya invoice). Mayoritas berstatus
   Selesai Trip / Lunas.
+- Setiap pesanan kini menyimpan **Laba**, **Insentif (2,75%)**, dan **Laba Bersih**
+  sesuai kolom arsip — tampil di Ringkasan Biaya pada halaman detail.
 - Ada 114 pesanan historis bertanda Lunas tanpa invoice (Rp 722.299.905). Sudah
   dilabeli dan dikeluarkan dari angka pendapatan. Perlakuan finalnya menunggu
   keputusan manajemen.
-- Beberapa keputusan yang masih menunggu: tanggal 12 baris data susulan, verifikasi
-  1 pesanan bernilai janggal, dan aturan perhitungan laba bersih 5% bila dibutuhkan.
-- Seluruh fitur inti (perbaikan alur status, asisten AI, beranda interaktif) sudah
-  terverifikasi dan berjalan. Cadangan kerja tersimpan di git (commit berkala).
+- Masih menunggu kelengkapan data: 10 baris arsip belum bisa diimpor karena Excel-nya
+  tidak lengkap (8 baris "Kementrian Haji" tanpa tanggal hari, 2 baris "Haekal" tanpa
+  tanggal & nopol), plus verifikasi 1 pesanan bernilai janggal.
+- Seluruh fitur inti (perbaikan alur status, asisten AI, beranda interaktif, import
+  setia-sheet) sudah terverifikasi dan berjalan. Cadangan kerja tersimpan di git.
