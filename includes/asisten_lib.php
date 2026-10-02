@@ -433,3 +433,93 @@ function asistenTanya(string $tanya, array $riwayat = []): array
 
     return ['ok' => false, 'error' => $error];
 }
+
+/* ==================== PEMBACA TEKS -> JSON (jalur cadangan) ==================== */
+
+/**
+ * Meminta model mengubah teks bebas menjadi JSON terstruktur.
+ * Dipakai HANYA sebagai penambal ketika pembaca pola (parse_teks_lib) gagal
+ * membaca sebagian field. Hasilnya selalu direview pengguna sebelum disimpan.
+ */
+function asistenParseJson(string $teks): array
+{
+    $cfg = asistenKredensial();
+    if (empty($cfg['api_key'])) {
+        return ['ok' => false, 'error' => 'Kunci API belum diisi di config/asisten.local.php'];
+    }
+
+    $system = "Kamu mesin pembaca teks pesanan rental mobil berbahasa Indonesia.\n"
+        . "Ubah teks konfirmasi reservasi yang diberikan menjadi JSON. Balas HANYA JSON, tanpa penjelasan.\n\n"
+        . "Skema yang wajib dikembalikan:\n"
+        . "{\n"
+        . '  "wilayah_pelayanan": "dalam_kota" | "luar_kota",' . "\n"
+        . '  "kota": "nama kota",' . "\n"
+        . '  "tgl_mulai": "YYYY-MM-DD",' . "\n"
+        . '  "tgl_finish": "YYYY-MM-DD",' . "\n"
+        . '  "jumlah_hari": angka,' . "\n"
+        . '  "jam": "teks jam atau kosong",' . "\n"
+        . '  "jam_koordinasi": 0 atau 1,' . "\n"
+        . '  "standby_point": "teks atau kosong",' . "\n"
+        . '  "flight": "kode/teks flight atau kosong",' . "\n"
+        . '  "nama_pesanan": "nama pemesan/instansi",' . "\n"
+        . '  "nama_pic": "nama PIC",' . "\n"
+        . '  "hp_pic": "nomor HP PIC",' . "\n"
+        . '  "items": [{"nama_unit":"","nopol":"","nama_driver":"","hp_driver":"","harga_jual_per_hari":0}],' . "\n"
+        . '  "includes": ["nama include"],' . "\n"
+        . '  "biaya": [{"nama":"","nominal":0}],' . "\n"
+        . '  "total_teks": angka' . "\n"
+        . "}\n\n"
+        . "Aturan:\n"
+        . "1. Ambil HANYA yang tertulis. Jangan mengarang nilai yang tidak ada; kosongkan (\"\" atau 0 atau []).\n"
+        . "2. Jika ada beberapa kendaraan, isi semuanya di dalam array items.\n"
+        . "3. Baris 'Hp/Wa' pertama milik driver, yang muncul setelah 'Pic' milik PIC.\n"
+        . "4. tanggal keluaran selalu format YYYY-MM-DD; angka tanpa titik/pemisah.\n"
+        . "5. 'Jam' yang berisi 'koordinasi' -> jam_koordinasi = 1 dan jam = \"\".\n"
+        . "6. Nama perusahaan pengirim (mis. 'PT. Seribu Nusantara Rental') BUKAN nama pesanan.\n";
+
+    $body = json_encode([
+        'systemInstruction' => ['parts' => [['text' => $system]]],
+        'contents'          => [['role' => 'user', 'parts' => [['text' => $teks]]]],
+        'generationConfig'  => ['temperature' => 0, 'maxOutputTokens' => 1500, 'responseMimeType' => 'application/json'],
+    ], JSON_UNESCAPED_UNICODE);
+
+    $models = array_values(array_filter(array_merge(
+        [(string) ($cfg['model'] ?? 'gemini-flash-lite-latest')],
+        (array) ($cfg['model_cadangan'] ?? [])
+    )));
+    $base = rtrim((string) ($cfg['base_url'] ?? 'https://generativelanguage.googleapis.com/v1beta'), '/');
+
+    $error = 'tidak ada model yang dicoba';
+    foreach ($models as $model) {
+        $ch = curl_init($base . '/models/' . $model . ':generateContent');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-goog-api-key: ' . $cfg['api_key']],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 60,
+        ]);
+        $resp = curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if ($resp === false) { $error = 'Koneksi ke layanan AI gagal: ' . $curlErr; continue; }
+        $json = json_decode((string) $resp, true);
+        if ($code !== 200) {
+            $error = 'HTTP ' . $code . ' dari model ' . $model . ': ' . mb_substr((string) ($json['error']['message'] ?? $resp), 0, 200);
+            continue;
+        }
+        $keluar = '';
+        foreach (($json['candidates'][0]['content']['parts'] ?? []) as $part) {
+            $keluar .= (string) ($part['text'] ?? '');
+        }
+        $keluar = trim($keluar);
+        $keluar = preg_replace('/^```(?:json)?|```$/m', '', $keluar);
+        $isi = json_decode(trim((string) $keluar), true);
+        if (!is_array($isi)) { $error = 'Model ' . $model . ' tidak mengembalikan JSON valid.'; continue; }
+        return ['ok' => true, 'json' => $isi, 'model' => $model];
+    }
+
+    return ['ok' => false, 'error' => $error];
+}

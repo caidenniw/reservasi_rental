@@ -1077,3 +1077,19 @@ html {
         display: none;
     }
 }
+
+/* ---------- Bedah teks pesanan (form pesanan baru) ---------- */
+.rn-terisi {
+    background-color: #fff8d6 !important;
+    box-shadow: inset 0 0 0 1px #f0d98a;
+    transition: background-color .35s ease;
+}
+.rn-bedah-box {
+    border: 1px solid #e3e6ee;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 10px 13px;
+    font-size: .9rem;
+}
+.rn-bedah-judul { font-weight: 600; margin-bottom: 2px; }
+.rn-bedah-warn { color: #b45309; }

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/parse_teks_lib.php';
 requireLogin();
 
 $db = getDB();
@@ -153,6 +154,29 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
 <form method="post" action="<?= BASE_URL ?>/pages/pesanan_proses.php" id="formPesanan">
     <?= csrfField() ?>
     <input type="hidden" name="id" value="<?= (int) $id ?>">
+
+<?php if (!$order): ?>
+    <div class="card-box" id="kartuBedah"
+         data-parse-url="<?= BASE_URL ?>/api/parse_pesanan.php"
+         data-parse-token="<?= e(parseToken()) ?>">
+        <div class="section-step">
+            <div class="step-no">0</div>
+            <div class="step-title">Isi Cepat dari Teks Pesanan</div>
+        </div>
+        <p class="text-soft mb-2">
+            Tempel teks konfirmasi pesanan (format standar), lalu klik <b>Bedah &amp; Isi Otomatis</b>.
+            Sistem mengisi kolom di bawah secara otomatis; kolom yang terisi disorot kuning untuk diperiksa.
+            Tidak ada yang tersimpan sebelum kamu menekan Simpan.
+        </p>
+        <textarea id="teksPesanan" class="form-control mono" rows="9" spellcheck="false"
+                  placeholder="Pelayanan: Dalam Kota Medan&#10;Tanggal: 03-10-2026 s/d 05-10-2026 (3 Day)&#10;..."></textarea>
+        <div class="baris-aksi mt-2">
+            <button type="button" class="btn btn-primary btn-sm" id="btnBedah">Bedah &amp; Isi Otomatis</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnBedahBersih">Bersihkan</button>
+        </div>
+        <div id="hasilBedah" class="mt-2"></div>
+    </div>
+<?php endif; ?>
 
     <div class="card-box">
         <div class="section-step"><div class="step-no">1</div><div class="step-title">Pelayanan</div></div>
@@ -439,4 +463,7 @@ function renderBlokUnit(array $it, int $i = 0, int $total = 1): void {
         <button type="button" class="btn btn-sm btn-outline-danger btn-hapus-biaya">x</button>
     </div>
 </template>
+<?php if (!$order): ?>
+<script src="<?= BASE_URL ?>/assets/js/parse_pesanan.js?v=20261002a"></script>
+<?php endif; ?>
 <?php include __DIR__ . '/../includes/footer.php'; ?>
