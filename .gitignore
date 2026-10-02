@@ -3,3 +3,4 @@ assets/uploads/*
 /vendor/
 composer.lock
 /config/asisten.local.php
+/.hermes/
